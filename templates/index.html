@@ -49,5 +49,48 @@
         {% endfor %}
     </table>
 
+</div>
+
+<!-- LOG TAB -->
+<div id="logs" class="tab" style="display:none">
+
+    <h3>Inventory Time Log</h3>
+
+    <!-- Export Buttons -->
+    <div class="export-buttons">
+        <a href="/export/excel"><button>Export to Excel</button></a>
+        <a href="/export/pdf"><button>Export to PDF</button></a>
+    </div>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Barcode</th>
+            <th>Action</th>
+            <th>Quantity</th>
+            <th>Time</th>
+        </tr>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log[0] }}</td>
+            <td>{{ log[1] }}</td>
+            <td>{{ log[2] }}</td>
+            <td>{{ log[3] }}</td>
+            <td>{{ log[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+<script>
+function showTab(tabName) {
+    document.getElementById("inventory").style.display = "none";
+    document.getElementById("logs").style.display = "none";
+    document.getElementById(tabName).style.display = "block";
+}
+</script>
+
 </body>
 </html>
+
