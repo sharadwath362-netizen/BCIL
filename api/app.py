@@ -177,14 +177,17 @@ def export_pdf():
     pdf = FPDF()
     pdf.add_page()
 
-    # ---------- WATERMARK ----------
-    pdf.set_text_color(200, 200, 200)   # light gray
-    pdf.set_font("Arial", "B", 40)
-    pdf.rotate(45, x=30, y=190)
-    pdf.text(30, 190, "RV College of Engineering")
-    pdf.rotate(0)
-    pdf.set_text_color(0, 0, 0)         # reset color
-    # --------------------------------
+    # ---------- LOGO WATERMARK ----------
+    pdf.image(
+        "static/college_logo.png",
+        x=35,        # horizontal position
+        y=60,        # vertical position
+        w=140        # width (large = watermark feel)
+    )
+    # -----------------------------------
+
+    # Move cursor down so table prints OVER the watermark
+    pdf.set_y(20)
 
     # Title
     pdf.set_font("Arial", "B", 14)
@@ -194,7 +197,7 @@ def export_pdf():
     # Table Header
     pdf.set_font("Arial", "B", 11)
     headers = ["ID", "Barcode", "Action", "Qty", "Time"]
-    widths = [10, 40, 25, 15, 50]
+    widths = [10, 40, 25, 15, 60]
 
     for i in range(len(headers)):
         pdf.cell(widths[i], 10, headers[i], 1)
@@ -221,6 +224,7 @@ def export_pdf():
         download_name=filename,
         mimetype="application/pdf"
     )
+
 
 
 # Required export for Vercel
