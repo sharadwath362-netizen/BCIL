@@ -176,23 +176,38 @@ def export_pdf():
 
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", "B", 12)
 
-    # Header
-    headers = ["ID", "Barcode", "Action", "Quantity", "Time"]
-    col_widths = [10, 40, 30, 20, 50]
-    for i, header in enumerate(headers):
-        pdf.cell(col_widths[i], 10, header, 1)
+    # ---------- WATERMARK ----------
+    pdf.set_text_color(200, 200, 200)   # light gray
+    pdf.set_font("Arial", "B", 40)
+    pdf.rotate(45, x=30, y=190)
+    pdf.text(30, 190, "RV College of Engineering")
+    pdf.rotate(0)
+    pdf.set_text_color(0, 0, 0)         # reset color
+    # --------------------------------
+
+    # Title
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "Inventory Time Log", ln=True, align="C")
+    pdf.ln(5)
+
+    # Table Header
+    pdf.set_font("Arial", "B", 11)
+    headers = ["ID", "Barcode", "Action", "Qty", "Time"]
+    widths = [10, 40, 25, 15, 50]
+
+    for i in range(len(headers)):
+        pdf.cell(widths[i], 10, headers[i], 1)
     pdf.ln()
 
-    # Rows
-    pdf.set_font("Arial", "", 12)
+    # Table Rows
+    pdf.set_font("Arial", "", 10)
     for row in logs:
-        pdf.cell(col_widths[0], 10, str(row[0]), 1)
-        pdf.cell(col_widths[1], 10, str(row[1]), 1)
-        pdf.cell(col_widths[2], 10, str(row[2]), 1)
-        pdf.cell(col_widths[3], 10, str(row[3]), 1)
-        pdf.cell(col_widths[4], 10, str(row[4]), 1)
+        pdf.cell(widths[0], 8, str(row[0]), 1)
+        pdf.cell(widths[1], 8, str(row[1]), 1)
+        pdf.cell(widths[2], 8, str(row[2]), 1)
+        pdf.cell(widths[3], 8, str(row[3]), 1)
+        pdf.cell(widths[4], 8, str(row[4]), 1)
         pdf.ln()
 
     output = io.BytesIO()
@@ -206,6 +221,7 @@ def export_pdf():
         download_name=filename,
         mimetype="application/pdf"
     )
+
 
 # Required export for Vercel
 app = app
