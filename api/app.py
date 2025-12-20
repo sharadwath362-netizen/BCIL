@@ -2,9 +2,6 @@ from flask import Flask, render_template, request, redirect, send_file
 import sqlite3
 from datetime import datetime
 import pandas as pd
-from fpdf import FPDF
-import io
-import os
 
 # Flask app paths for Vercel
 app = Flask(
