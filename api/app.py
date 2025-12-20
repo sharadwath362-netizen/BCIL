@@ -1,8 +1,9 @@
-
-    
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, send_file
 import sqlite3
 from datetime import datetime
+import pandas as pd
+from fpdf import FPDF
+import io
 
 # Flask app paths for Vercel
 app = Flask(
@@ -145,6 +146,66 @@ def remove_item():
         conn.close()
 
     return redirect("/")
+
+# ---------------- Export Routes ---------------- #
+
+@app.route("/export/excel")
+def export_excel():
+    conn = get_db()
+    df = pd.read_sql_query("SELECT * FROM logs ORDER BY id DESC", conn)
+    conn.close()
+
+    output = io.BytesIO()
+    df.to_excel(output, index=False, engine="openpyxl")
+    output.seek(0)
+
+    filename = f"inventory_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+@app.route("/export/pdf")
+def export_pdf():
+    conn = get_db()
+    cur = conn.cursor()
+    logs = cur.execute("SELECT * FROM logs ORDER BY id DESC").fetchall()
+    conn.close()
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 12)
+
+    # Header
+    headers = ["ID", "Barcode", "Action", "Quantity", "Time"]
+    col_widths = [10, 40, 30, 20, 50]
+    for i, header in enumerate(headers):
+        pdf.cell(col_widths[i], 10, header, 1)
+    pdf.ln()
+
+    # Rows
+    pdf.set_font("Arial", "", 12)
+    for row in logs:
+        pdf.cell(col_widths[0], 10, str(row[0]), 1)
+        pdf.cell(col_widths[1], 10, str(row[1]), 1)
+        pdf.cell(col_widths[2], 10, str(row[2]), 1)
+        pdf.cell(col_widths[3], 10, str(row[3]), 1)
+        pdf.cell(col_widths[4], 10, str(row[4]), 1)
+        pdf.ln()
+
+    output = io.BytesIO()
+    pdf.output(output)
+    output.seek(0)
+
+    filename = f"inventory_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype="application/pdf"
+    )
 
 # Required export for Vercel
 app = app
