@@ -1,69 +1,87 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Barcode Inventory</title>
+    <meta charset="UTF-8">
+    <title>Barcode Inventory System</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<h2>Barcode Based Inventory</h2>
+<h2>Barcode Based Inventory System</h2>
 
 <div class="tabs">
     <button onclick="showTab('inventory')">Inventory</button>
     <button onclick="showTab('logs')">Time Log</button>
 </div>
 
+<!-- INVENTORY TAB -->
 <div id="inventory" class="tab">
+
+    <h3>Add Item</h3>
     <form action="/add" method="post">
-        <input type="text" name="barcode" placeholder="Scan Barcode" required>
-        <button>Add Item</button>
+        <input type="text" name="barcode" placeholder="Scan / Enter Barcode" required>
+        <input type="number" name="quantity" placeholder="Quantity to Add" min="1" required>
+        <button type="submit">Add</button>
     </form>
 
+    <h3>Remove Item</h3>
     <form action="/remove" method="post">
-        <input type="text" name="barcode" placeholder="Barcode to Remove" required>
-        <button>Remove Item</button>
+        <input type="text" name="barcode" placeholder="Enter Barcode" required>
+        <input type="number" name="quantity" placeholder="Quantity to Remove" min="1" required>
+        <button type="submit">Remove</button>
     </form>
 
+    <h3>Current Inventory</h3>
     <table>
         <tr>
             <th>ID</th>
             <th>Barcode</th>
-            <th>Added Time</th>
+            <th>Quantity</th>
+            <th>Last Updated</th>
         </tr>
         {% for item in inventory %}
         <tr>
-            <td>{{item[0]}}</td>
-            <td>{{item[1]}}</td>
-            <td>{{item[2]}}</td>
+            <td>{{ item[0] }}</td>
+            <td>{{ item[1] }}</td>
+            <td>{{ item[2] }}</td>
+            <td>{{ item[3] }}</td>
         </tr>
         {% endfor %}
     </table>
+
 </div>
 
+<!-- LOG TAB -->
 <div id="logs" class="tab" style="display:none">
+
+    <h3>Inventory Time Log</h3>
     <table>
         <tr>
             <th>ID</th>
             <th>Barcode</th>
             <th>Action</th>
+            <th>Quantity</th>
             <th>Time</th>
         </tr>
         {% for log in logs %}
         <tr>
-            <td>{{log[0]}}</td>
-            <td>{{log[1]}}</td>
-            <td>{{log[2]}}</td>
-            <td>{{log[3]}}</td>
+            <td>{{ log[0] }}</td>
+            <td>{{ log[1] }}</td>
+            <td>{{ log[2] }}</td>
+            <td>{{ log[3] }}</td>
+            <td>{{ log[4] }}</td>
         </tr>
         {% endfor %}
     </table>
+
 </div>
 
 <script>
-function showTab(tab) {
+function showTab(tabName) {
     document.getElementById("inventory").style.display = "none";
     document.getElementById("logs").style.display = "none";
-    document.getElementById(tab).style.display = "block";
+    document.getElementById(tabName).style.display = "block";
 }
 </script>
 
