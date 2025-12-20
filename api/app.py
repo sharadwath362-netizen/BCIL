@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 from fpdf import FPDF
 import io
+import os
 
 # Flask app paths for Vercel
 app = Flask(
@@ -169,6 +170,7 @@ def export_excel():
 
 @app.route("/export/pdf")
 def export_pdf():
+    import os
     conn = get_db()
     cur = conn.cursor()
     logs = cur.execute("SELECT * FROM logs ORDER BY id DESC").fetchall()
@@ -177,24 +179,19 @@ def export_pdf():
     pdf = FPDF()
     pdf.add_page()
 
-    # ---------- LOGO WATERMARK ----------
-    pdf.image(
-        "static/college_logo.png",
-        x=35,        # horizontal position
-        y=60,        # vertical position
-        w=140        # width (large = watermark feel)
-    )
-    # -----------------------------------
+    # Absolute path for logo (Vercel-safe)
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    logo_path = os.path.join(BASE_DIR, "..", "static", "college_logo.png")
 
-    # Move cursor down so table prints OVER the watermark
+    if os.path.exists(logo_path):
+        pdf.image(logo_path, x=35, y=60, w=140)
+
     pdf.set_y(20)
 
-    # Title
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "Inventory Time Log", ln=True, align="C")
     pdf.ln(5)
 
-    # Table Header
     pdf.set_font("Arial", "B", 11)
     headers = ["ID", "Barcode", "Action", "Qty", "Time"]
     widths = [10, 40, 25, 15, 60]
@@ -203,7 +200,6 @@ def export_pdf():
         pdf.cell(widths[i], 10, headers[i], 1)
     pdf.ln()
 
-    # Table Rows
     pdf.set_font("Arial", "", 10)
     for row in logs:
         pdf.cell(widths[0], 8, str(row[0]), 1)
@@ -217,15 +213,13 @@ def export_pdf():
     pdf.output(output)
     output.seek(0)
 
-    filename = f"inventory_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     return send_file(
         output,
         as_attachment=True,
-        download_name=filename,
+        download_name="inventory_logs.pdf",
         mimetype="application/pdf"
     )
 
-
-
+    
 # Required export for Vercel
 app = app
