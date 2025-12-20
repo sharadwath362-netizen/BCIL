@@ -263,3 +263,28 @@ input,
 .export-buttons a {
     text-decoration: none;
 }
+
+/* Website Header with College Logo */
+.site-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 10px;
+    margin-bottom: 10px;
+}
+
+.college-logo {
+    width: 65px;
+    height: auto;
+}
+
+.header-text h2 {
+    margin: 0;
+    color: #1f3c88;
+}
+
+.subtitle {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #555;
+}
