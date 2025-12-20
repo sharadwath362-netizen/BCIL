@@ -236,3 +236,31 @@ input,
         transform: translateY(0);
     }
 }
+
+/* Export Buttons Styling */
+.export-buttons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: flex-start;
+}
+
+.export-buttons button {
+    background: linear-gradient(135deg, #f57c00, #ffb74d);
+    color: white;
+    font-weight: bold;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.export-buttons button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 18px rgba(245, 124, 0, 0.35);
+}
+
+.export-buttons a {
+    text-decoration: none;
+}
+
