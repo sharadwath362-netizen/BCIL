@@ -16,7 +16,8 @@ body > * {
 /* Heading */
 h2 {
     text-align: center;
-    padding: 25px 0;
+    padding: 12px 0 6px 0;  /* reduced bottom padding */
+    margin-bottom: 4px;    /* reduce gap below title */
     color: #1f3c88;
 }
 
