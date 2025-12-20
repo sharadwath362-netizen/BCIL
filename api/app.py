@@ -1,52 +1,51 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
 from datetime import datetime
-import os
 
-# Create Flask app with correct paths for Vercel
+# Flask app (paths fixed for Vercel)
 app = Flask(
     __name__,
     template_folder="../templates",
     static_folder="../static"
 )
 
-# Database path (Vercel allows /tmp only)
+# Vercel allows writes ONLY in /tmp
 DB_PATH = "/tmp/inventory.db"
 
-def connect_db():
+def get_db():
     return sqlite3.connect(DB_PATH)
 
-# Initialize database
+# Initialize database safely
 def init_db():
-    conn = connect_db()
-    cursor = conn.cursor()
+    conn = get_db()
+    cur = conn.cursor()
 
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS inventory (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        barcode TEXT UNIQUE,
-        added_time TEXT
-    )
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS inventory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            barcode TEXT UNIQUE,
+            added_time TEXT
+        )
     """)
 
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        barcode TEXT,
-        action TEXT,
-        time TEXT
-    )
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            barcode TEXT,
+            action TEXT,
+            time TEXT
+        )
     """)
 
     conn.commit()
     conn.close()
 
-# Initialize DB once
+# Run DB init on cold start
 init_db()
 
 @app.route("/")
 def index():
-    conn = connect_db()
+    conn = get_db()
     cur = conn.cursor()
 
     inventory = cur.execute(
@@ -70,7 +69,7 @@ def add_item():
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     if barcode:
-        conn = connect_db()
+        conn = get_db()
         cur = conn.cursor()
 
         try:
@@ -84,7 +83,7 @@ def add_item():
             )
             conn.commit()
         except sqlite3.IntegrityError:
-            pass  # Ignore duplicate barcode
+            pass
         finally:
             conn.close()
 
@@ -96,7 +95,7 @@ def remove_item():
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     if barcode:
-        conn = connect_db()
+        conn = get_db()
         cur = conn.cursor()
 
         cur.execute(
@@ -114,5 +113,6 @@ def remove_item():
 
     return redirect("/")
 
-# IMPORTANT: expose app to Vercel
+# REQUIRED for Vercel
 app = app
+
