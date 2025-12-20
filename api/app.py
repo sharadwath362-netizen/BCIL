@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, send_file
 import sqlite3
 from datetime import datetime
 import pandas as pd
+from fpdf import FPDF
+import io
 
 # Flask app paths for Vercel
 app = Flask(
@@ -167,78 +169,43 @@ def export_excel():
 
 @app.route("/export/pdf")
 def export_pdf():
-    from fpdf import FPDF
-    import os, io
-
     conn = get_db()
     cur = conn.cursor()
     logs = cur.execute("SELECT * FROM logs ORDER BY id DESC").fetchall()
     conn.close()
 
     pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
+    pdf.set_font("Arial", "B", 12)
 
-    # -------- PATH SETUP (VERCEL SAFE) --------
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    logo_path = os.path.join(BASE_DIR, "..", "static", "college_logo.png")
-
-    # -------- HEADER LOGO --------
-    try:
-        if os.path.exists(logo_path):
-            pdf.image(logo_path, x=10, y=8, w=25)
-    except Exception:
-        pass  # NEVER crash PDF
-
-    # Header text
-    pdf.set_xy(40, 10)
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 8, "Barcode Based Inventory System", ln=True)
-
-    pdf.set_x(40)
-    pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 6, "Inventory Time Log Report", ln=True)
-
-    pdf.ln(12)
-
-    # -------- WATERMARK (CENTER LOGO) --------
-    try:
-        if os.path.exists(logo_path):
-            pdf.image(logo_path, x=30, y=70, w=150)
-    except Exception:
-        pass  # watermark must NEVER crash
-
-    # -------- TABLE --------
-    pdf.set_font("Arial", "B", 11)
-    headers = ["ID", "Barcode", "Action", "Qty", "Time"]
-    widths = [10, 40, 25, 15, 60]
-
-    for i in range(len(headers)):
-        pdf.cell(widths[i], 8, headers[i], 1)
+    # Header
+    headers = ["ID", "Barcode", "Action", "Quantity", "Time"]
+    col_widths = [10, 40, 30, 20, 50]
+    for i, header in enumerate(headers):
+        pdf.cell(col_widths[i], 10, header, 1)
     pdf.ln()
 
-    pdf.set_font("Arial", "", 10)
+    # Rows
+    pdf.set_font("Arial", "", 12)
     for row in logs:
-        pdf.cell(widths[0], 8, str(row[0]), 1)
-        pdf.cell(widths[1], 8, str(row[1]), 1)
-        pdf.cell(widths[2], 8, str(row[2]), 1)
-        pdf.cell(widths[3], 8, str(row[3]), 1)
-        pdf.cell(widths[4], 8, str(row[4]), 1)
+        pdf.cell(col_widths[0], 10, str(row[0]), 1)
+        pdf.cell(col_widths[1], 10, str(row[1]), 1)
+        pdf.cell(col_widths[2], 10, str(row[2]), 1)
+        pdf.cell(col_widths[3], 10, str(row[3]), 1)
+        pdf.cell(col_widths[4], 10, str(row[4]), 1)
         pdf.ln()
 
-    # -------- OUTPUT --------
-    buffer = io.BytesIO()
-    pdf.output(buffer)
-    buffer.seek(0)
+    output = io.BytesIO()
+    pdf.output(output)
+    output.seek(0)
 
+    filename = f"inventory_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     return send_file(
-        buffer,
+        output,
         as_attachment=True,
-        download_name="inventory_logs.pdf",
+        download_name=filename,
         mimetype="application/pdf"
     )
 
-
-    
 # Required export for Vercel
 app = app
