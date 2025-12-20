@@ -170,34 +170,54 @@ def export_excel():
 
 @app.route("/export/pdf")
 def export_pdf():
-    import os
+    from fpdf import FPDF
+    import os, io
+
     conn = get_db()
     cur = conn.cursor()
     logs = cur.execute("SELECT * FROM logs ORDER BY id DESC").fetchall()
     conn.close()
 
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
-    # Absolute path for logo (Vercel-safe)
+    # -------- PATH SETUP (VERCEL SAFE) --------
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     logo_path = os.path.join(BASE_DIR, "..", "static", "college_logo.png")
 
-    if os.path.exists(logo_path):
-        pdf.image(logo_path, x=35, y=60, w=140)
+    # -------- HEADER LOGO --------
+    try:
+        if os.path.exists(logo_path):
+            pdf.image(logo_path, x=10, y=8, w=25)
+    except Exception:
+        pass  # NEVER crash PDF
 
-    pdf.set_y(20)
-
+    # Header text
+    pdf.set_xy(40, 10)
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "Inventory Time Log", ln=True, align="C")
-    pdf.ln(5)
+    pdf.cell(0, 8, "Barcode Based Inventory System", ln=True)
 
+    pdf.set_x(40)
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(0, 6, "Inventory Time Log Report", ln=True)
+
+    pdf.ln(12)
+
+    # -------- WATERMARK (CENTER LOGO) --------
+    try:
+        if os.path.exists(logo_path):
+            pdf.image(logo_path, x=30, y=70, w=150)
+    except Exception:
+        pass  # watermark must NEVER crash
+
+    # -------- TABLE --------
     pdf.set_font("Arial", "B", 11)
     headers = ["ID", "Barcode", "Action", "Qty", "Time"]
     widths = [10, 40, 25, 15, 60]
 
     for i in range(len(headers)):
-        pdf.cell(widths[i], 10, headers[i], 1)
+        pdf.cell(widths[i], 8, headers[i], 1)
     pdf.ln()
 
     pdf.set_font("Arial", "", 10)
@@ -209,16 +229,18 @@ def export_pdf():
         pdf.cell(widths[4], 8, str(row[4]), 1)
         pdf.ln()
 
-    output = io.BytesIO()
-    pdf.output(output)
-    output.seek(0)
+    # -------- OUTPUT --------
+    buffer = io.BytesIO()
+    pdf.output(buffer)
+    buffer.seek(0)
 
     return send_file(
-        output,
+        buffer,
         as_attachment=True,
         download_name="inventory_logs.pdf",
         mimetype="application/pdf"
     )
+
 
     
 # Required export for Vercel
