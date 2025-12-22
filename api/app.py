@@ -1,9 +1,7 @@
-from flask import Flask, render_template, request, jsonify, send_file
-import sqlite3
+from flask import Flask, render_template, request, jsonify
 from datetime import datetime
-import pandas as pd
-from fpdf import FPDF
-import io
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 app = Flask(
     __name__,
@@ -11,57 +9,25 @@ app = Flask(
     static_folder="../static"
 )
 
-DB_PATH = "/tmp/inventory.db"
+# ---------------- FIREBASE INITIALIZATION ---------------- #
+cred = credentials.Certificate("firebase_key.json")  # Path to your Firebase service account JSON
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-def get_db():
-    return sqlite3.connect(DB_PATH)
-
-def init_db():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS inventory (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            barcode TEXT UNIQUE,
-            quantity INTEGER,
-            updated_time TEXT
-        )
-    """)
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            barcode TEXT,
-            action TEXT,
-            quantity INTEGER,
-            time TEXT
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-init_db()
-
+# ---------------- HOME PAGE ---------------- #
 @app.route("/")
 def index():
-    conn = get_db()
-    cur = conn.cursor()
+    items_ref = db.collection("inventory")
+    docs = items_ref.order_by("updated_time", direction=firestore.Query.DESCENDING).stream()
+    inventory = [doc.to_dict() for doc in docs]
 
-    inventory = cur.execute(
-        "SELECT * FROM inventory ORDER BY id DESC"
-    ).fetchall()
+    logs_ref = db.collection("logs")
+    logs_docs = logs_ref.order_by("time", direction=firestore.Query.DESCENDING).stream()
+    logs = [doc.to_dict() for doc in logs_docs]
 
-    logs = cur.execute(
-        "SELECT * FROM logs ORDER BY id DESC"
-    ).fetchall()
-
-    conn.close()
     return render_template("index.html", inventory=inventory, logs=logs)
 
-# ---------------- ADD ITEM (NO REFRESH) ---------------- #
-
+# ---------------- ADD ITEM ---------------- #
 @app.route("/add", methods=["POST"])
 def add_item():
     data = request.get_json()
@@ -72,42 +38,22 @@ def add_item():
     if not barcode or qty <= 0:
         return jsonify({"status": "error", "message": "Invalid input"}), 400
 
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute(
-        "SELECT quantity FROM inventory WHERE barcode = ?",
-        (barcode,)
-    )
-    row = cur.fetchone()
-
-    if row:
-        new_qty = row[0] + qty
-        cur.execute(
-            "UPDATE inventory SET quantity = ?, updated_time = ? WHERE barcode = ?",
-            (new_qty, time, barcode)
-        )
+    item_ref = db.collection("inventory").document(barcode)
+    item = item_ref.get()
+    if item.exists:
+        new_qty = item.to_dict().get("quantity", 0) + qty
+        item_ref.update({"quantity": new_qty, "updated_time": time})
     else:
-        cur.execute(
-            "INSERT INTO inventory (barcode, quantity, updated_time) VALUES (?, ?, ?)",
-            (barcode, qty, time)
-        )
+        item_ref.set({"barcode": barcode, "quantity": qty, "updated_time": time})
 
-    cur.execute(
-        "INSERT INTO logs (barcode, action, quantity, time) VALUES (?, ?, ?, ?)",
-        (barcode, "Added", qty, time)
-    )
-
-    conn.commit()
-    conn.close()
+    # Add log
+    db.collection("logs").add({"barcode": barcode, "action": "Added", "quantity": qty, "time": time})
 
     return jsonify({"status": "success"})
 
-# ---------------- REMOVE ITEM (NO REFRESH) ---------------- #
-
+# ---------------- REMOVE ITEM ---------------- #
 @app.route("/remove", methods=["POST"])
 def remove_item():
-    
     data = request.get_json()
     barcode = data.get("barcode")
     qty = int(data.get("quantity", 0))
@@ -116,55 +62,45 @@ def remove_item():
     if not barcode or qty <= 0:
         return jsonify({"status": "error", "message": "Invalid input"}), 400
 
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute(
-        "SELECT quantity FROM inventory WHERE barcode = ?",
-        (barcode,)
-    )
-    row = cur.fetchone()
-
-    if not row:
-        conn.close()
+    item_ref = db.collection("inventory").document(barcode)
+    item = item_ref.get()
+    if not item.exists:
         return jsonify({"status": "error", "message": "Item not found"}), 404
 
-    remaining = row[0] - qty
-
+    remaining = item.to_dict().get("quantity", 0) - qty
     if remaining > 0:
-        cur.execute(
-            "UPDATE inventory SET quantity = ?, updated_time = ? WHERE barcode = ?",
-            (remaining, time, barcode)
-        )
+        item_ref.update({"quantity": remaining, "updated_time": time})
     else:
-        cur.execute(
-            "DELETE FROM inventory WHERE barcode = ?",
-            (barcode,)
-        )
+        item_ref.delete()
 
-    cur.execute(
-        "INSERT INTO logs (barcode, action, quantity, time) VALUES (?, ?, ?, ?)",
-        (barcode, "Removed", qty, time)
-    )
-
-    conn.commit()
-    conn.close()
+    # Add log
+    db.collection("logs").add({"barcode": barcode, "action": "Removed", "quantity": qty, "time": time})
 
     return jsonify({"status": "success"})
-    
+
+# ---------------- RESET INVENTORY ---------------- #
 @app.route("/reset", methods=["POST"])
 def reset_inventory():
-    conn = get_db()
-    cur = conn.cursor()
+    # Delete all items
+    items = db.collection("inventory").stream()
+    for item in items:
+        db.collection("inventory").document(item.id).delete()
 
-    cur.execute("DELETE FROM inventory")
-    cur.execute("DELETE FROM logs")
-
-    conn.commit()
-    conn.close()
+    # Delete all logs
+    logs = db.collection("logs").stream()
+    for log in logs:
+        db.collection("logs").document(log.id).delete()
 
     return jsonify({"status": "inventory_cleared"})
 
+# ---------------- INVENTORY DATA FOR CHART.JS ---------------- #
+@app.route("/inventory-data")
+def inventory_data():
+    items_ref = db.collection("inventory")
+    docs = items_ref.stream()
+    data = [{"item": doc.to_dict()["barcode"], "quantity": doc.to_dict()["quantity"]} for doc in docs]
+    return jsonify(data)
 
 # Required for Vercel
 app = app
+
