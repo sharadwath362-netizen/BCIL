@@ -107,6 +107,7 @@ def add_item():
 
 @app.route("/remove", methods=["POST"])
 def remove_item():
+    
     data = request.get_json()
     barcode = data.get("barcode")
     qty = int(data.get("quantity", 0))
@@ -150,6 +151,20 @@ def remove_item():
     conn.close()
 
     return jsonify({"status": "success"})
+    
+@app.route("/reset", methods=["POST"])
+def reset_inventory():
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM inventory")
+    cur.execute("DELETE FROM logs")
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "inventory_cleared"})
+
 
 # Required for Vercel
 app = app
