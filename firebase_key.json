@@ -1,17 +1,9 @@
-
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyC754aYhpwDqRnQbTKC8QyjEW8XONYCogw",
-  authDomain: "bc-based-inv-log.firebaseapp.com",
-  projectId: "bc-based-inv-log",
-  storageBucket: "bc-based-inv-log.firebasestorage.app",
-  messagingSenderId: "855451047526",
-  appId: "1:855451047526:web:992a708b7813841e833fa7",
-  measurementId: "G-HMBMQR4018"
-};
-
-
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+{
+  "apiKey": "AIzaSyC754aYhpwDqRnQbTKC8QyjEW8XONYCogw",
+  "authDomain": "bc-based-inv-log.firebaseapp.com",
+  "projectId": "bc-based-inv-log",
+  "storageBucket": "bc-based-inv-log.firebasestorage.app",
+  "messagingSenderId": "855451047526",
+  "appId": "1:855451047526:web:992a708b7813841e833fa7",
+  "measurementId": "G-HMBMQR4018"
+}
