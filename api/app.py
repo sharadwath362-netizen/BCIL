@@ -1,11 +1,10 @@
-from flask import Flask, render_template, request, redirect, send_file
+from flask import Flask, render_template, request, jsonify, send_file
 import sqlite3
 from datetime import datetime
 import pandas as pd
 from fpdf import FPDF
 import io
 
-# Flask app paths for Vercel
 app = Flask(
     __name__,
     template_folder="../templates",
@@ -17,12 +16,10 @@ DB_PATH = "/tmp/inventory.db"
 def get_db():
     return sqlite3.connect(DB_PATH)
 
-# Initialize database
 def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    # Inventory with quantity
     cur.execute("""
         CREATE TABLE IF NOT EXISTS inventory (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,7 +29,6 @@ def init_db():
         )
     """)
 
-    # Logs with quantity change
     cur.execute("""
         CREATE TABLE IF NOT EXISTS logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,150 +58,98 @@ def index():
     ).fetchall()
 
     conn.close()
-    return render_template(
-        "index.html",
-        inventory=inventory,
-        logs=logs
-    )
+    return render_template("index.html", inventory=inventory, logs=logs)
+
+# ---------------- ADD ITEM (NO REFRESH) ---------------- #
 
 @app.route("/add", methods=["POST"])
 def add_item():
-    barcode = request.form.get("barcode")
-    qty = int(request.form.get("quantity", 0))
+    data = request.get_json()
+    barcode = data.get("barcode")
+    qty = int(data.get("quantity", 0))
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if barcode and qty > 0:
-        conn = get_db()
-        cur = conn.cursor()
+    if not barcode or qty <= 0:
+        return jsonify({"status": "error", "message": "Invalid input"}), 400
 
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT quantity FROM inventory WHERE barcode = ?",
+        (barcode,)
+    )
+    row = cur.fetchone()
+
+    if row:
+        new_qty = row[0] + qty
         cur.execute(
-            "SELECT quantity FROM inventory WHERE barcode = ?",
-            (barcode,)
+            "UPDATE inventory SET quantity = ?, updated_time = ? WHERE barcode = ?",
+            (new_qty, time, barcode)
         )
-        row = cur.fetchone()
-
-        if row:
-            new_qty = row[0] + qty
-            cur.execute(
-                "UPDATE inventory SET quantity = ?, updated_time = ? WHERE barcode = ?",
-                (new_qty, time, barcode)
-            )
-        else:
-            cur.execute(
-                "INSERT INTO inventory (barcode, quantity, updated_time) VALUES (?, ?, ?)",
-                (barcode, qty, time)
-            )
-
+    else:
         cur.execute(
-            "INSERT INTO logs (barcode, action, quantity, time) VALUES (?, ?, ?, ?)",
-            (barcode, "Added", qty, time)
+            "INSERT INTO inventory (barcode, quantity, updated_time) VALUES (?, ?, ?)",
+            (barcode, qty, time)
         )
 
-        conn.commit()
-        conn.close()
+    cur.execute(
+        "INSERT INTO logs (barcode, action, quantity, time) VALUES (?, ?, ?, ?)",
+        (barcode, "Added", qty, time)
+    )
 
-    return redirect("/")
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "success"})
+
+# ---------------- REMOVE ITEM (NO REFRESH) ---------------- #
 
 @app.route("/remove", methods=["POST"])
 def remove_item():
-    barcode = request.form.get("barcode")
-    qty = int(request.form.get("quantity", 0))
+    data = request.get_json()
+    barcode = data.get("barcode")
+    qty = int(data.get("quantity", 0))
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if barcode and qty > 0:
-        conn = get_db()
-        cur = conn.cursor()
+    if not barcode or qty <= 0:
+        return jsonify({"status": "error", "message": "Invalid input"}), 400
 
-        cur.execute(
-            "SELECT quantity FROM inventory WHERE barcode = ?",
-            (barcode,)
-        )
-        row = cur.fetchone()
-
-        if row:
-            remaining = row[0] - qty
-
-            if remaining > 0:
-                cur.execute(
-                    "UPDATE inventory SET quantity = ?, updated_time = ? WHERE barcode = ?",
-                    (remaining, time, barcode)
-                )
-            else:
-                cur.execute(
-                    "DELETE FROM inventory WHERE barcode = ?",
-                    (barcode,)
-                )
-
-            cur.execute(
-                "INSERT INTO logs (barcode, action, quantity, time) VALUES (?, ?, ?, ?)",
-                (barcode, "Removed", qty, time)
-            )
-
-            conn.commit()
-
-        conn.close()
-
-    return redirect("/")
-
-# ---------------- Export Routes ---------------- #
-
-@app.route("/export/excel")
-def export_excel():
-    conn = get_db()
-    df = pd.read_sql_query("SELECT * FROM logs ORDER BY id DESC", conn)
-    conn.close()
-
-    output = io.BytesIO()
-    df.to_excel(output, index=False, engine="openpyxl")
-    output.seek(0)
-
-    filename = f"inventory_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name=filename,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-@app.route("/export/pdf")
-def export_pdf():
     conn = get_db()
     cur = conn.cursor()
-    logs = cur.execute("SELECT * FROM logs ORDER BY id DESC").fetchall()
-    conn.close()
 
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", "B", 12)
+    cur.execute(
+        "SELECT quantity FROM inventory WHERE barcode = ?",
+        (barcode,)
+    )
+    row = cur.fetchone()
 
-    # Header
-    headers = ["ID", "Barcode", "Action", "Quantity", "Time"]
-    col_widths = [10, 40, 30, 20, 50]
-    for i, header in enumerate(headers):
-        pdf.cell(col_widths[i], 10, header, 1)
-    pdf.ln()
+    if not row:
+        conn.close()
+        return jsonify({"status": "error", "message": "Item not found"}), 404
 
-    # Rows
-    pdf.set_font("Arial", "", 12)
-    for row in logs:
-        pdf.cell(col_widths[0], 10, str(row[0]), 1)
-        pdf.cell(col_widths[1], 10, str(row[1]), 1)
-        pdf.cell(col_widths[2], 10, str(row[2]), 1)
-        pdf.cell(col_widths[3], 10, str(row[3]), 1)
-        pdf.cell(col_widths[4], 10, str(row[4]), 1)
-        pdf.ln()
+    remaining = row[0] - qty
 
-    output = io.BytesIO()
-    pdf.output(output)
-    output.seek(0)
+    if remaining > 0:
+        cur.execute(
+            "UPDATE inventory SET quantity = ?, updated_time = ? WHERE barcode = ?",
+            (remaining, time, barcode)
+        )
+    else:
+        cur.execute(
+            "DELETE FROM inventory WHERE barcode = ?",
+            (barcode,)
+        )
 
-    filename = f"inventory_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name=filename,
-        mimetype="application/pdf"
+    cur.execute(
+        "INSERT INTO logs (barcode, action, quantity, time) VALUES (?, ?, ?, ?)",
+        (barcode, "Removed", qty, time)
     )
 
-# Required export for Vercel
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "success"})
+
+# Required for Vercel
 app = app
