@@ -12,17 +12,15 @@
 
     <div class="header-text">
         <h2>Barcode Based Inventory System</h2>
-        <p class="subtitle"> Experential Learning - Python </p>
+        <p class="subtitle">Experiential Learning - Python</p>
         <p class="subtitle">
-    Developed by: <strong>Sharadwath S D</strong> | USN: <strong>RVCE25BCY030</strong> <br> 
-            <strong>Adarsh C</strong> | USN: <strong>RVCE25BCY033</strong> <br>
-            <strong>Soham G Devarahalli</strong> | USN: <strong>RVCE25BCY028</strong> <br>
+            Developed by: <strong>Sharadwath S D</strong> | USN: <strong>RVCE25BCY030</strong><br>
+            <strong>Adarsh C</strong> | USN: <strong>RVCE25BCY033</strong><br>
+            <strong>Soham G Devarahalli</strong> | USN: <strong>RVCE25BCY028</strong><br>
             <strong>Advik Kamath</strong> | USN: <strong>RVCE25BCY023</strong>
-</p>
-
+        </p>
     </div>
 </div>
-
 
 <div class="tabs">
     <button onclick="showTab('inventory')">Inventory</button>
@@ -33,16 +31,16 @@
 <div id="inventory" class="tab">
 
     <h3>Add Item</h3>
-    <form action="/add" method="post">
-        <input type="text" name="barcode" placeholder="Scan / Enter Barcode" required>
-        <input type="number" name="quantity" placeholder="Quantity to Add" min="1" required>
+    <form onsubmit="addItem(); return false;">
+        <input type="text" id="add_barcode" placeholder="Scan / Enter Barcode" required>
+        <input type="number" id="add_quantity" placeholder="Quantity to Add" min="1" required>
         <button type="submit">Add</button>
     </form>
 
     <h3>Remove Item</h3>
-    <form action="/remove" method="post">
-        <input type="text" name="barcode" placeholder="Enter Barcode" required>
-        <input type="number" name="quantity" placeholder="Quantity to Remove" min="1" required>
+    <form onsubmit="removeItem(); return false;">
+        <input type="text" id="remove_barcode" placeholder="Enter Barcode" required>
+        <input type="number" id="remove_quantity" placeholder="Quantity to Remove" min="1" required>
         <button type="submit">Remove</button>
     </form>
 
@@ -71,7 +69,6 @@
 
     <h3>Inventory Time Log</h3>
 
-    <!-- Export Buttons -->
     <div class="export-buttons">
         <a href="/export/excel"><button>Export to Excel</button></a>
         <a href="/export/pdf"><button>Export to PDF</button></a>
@@ -103,6 +100,34 @@ function showTab(tabName) {
     document.getElementById("inventory").style.display = "none";
     document.getElementById("logs").style.display = "none";
     document.getElementById(tabName).style.display = "block";
+}
+
+// -------- ADD ITEM --------
+function addItem() {
+    fetch("/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            barcode: document.getElementById("add_barcode").value,
+            quantity: document.getElementById("add_quantity").value
+        })
+    })
+    .then(res => res.json())
+    .then(() => location.reload());
+}
+
+// -------- REMOVE ITEM --------
+function removeItem() {
+    fetch("/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            barcode: document.getElementById("remove_barcode").value,
+            quantity: document.getElementById("remove_quantity").value
+        })
+    })
+    .then(res => res.json())
+    .then(() => location.reload());
 }
 </script>
 
