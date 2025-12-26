@@ -2,47 +2,47 @@ import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
+import io
+import base64
 
-# Path to SQLite database
-DB_PATH = "/tmp/inventory.db"
+DB_PATH = "/tmp/inventory.db"  # Your DB path
 
-# Path to store charts (matches your Flask static folder)
-CHARTS_DIR = "../static/charts"
-
-# Ensure charts folder exists
-os.makedirs(CHARTS_DIR, exist_ok=True)
-
-def generate_charts():
-    # Fetch inventory data
+def generate_charts_base64():
+    """
+    Returns two base64 strings for Item Popularity and Stock Levels charts.
+    """
     conn = sqlite3.connect(DB_PATH)
     df = pd.read_sql_query("SELECT name, quantity FROM inventory", conn)
     conn.close()
 
     if df.empty:
-        return  # Nothing to plot
+        return None, None
 
     items = df['name'].to_numpy()
     quantity = df['quantity'].to_numpy()
 
-    # ---------------------------
-    # 1️⃣ Item Popularity (Horizontal Bar)
-    # ---------------------------
-    sns.set_style("whitegrid")
+    # -----------------------
+    # Item Popularity Chart
+    # -----------------------
     plt.figure(figsize=(10,6))
+    sns.set_style("whitegrid")
     colors = sns.color_palette("viridis", len(items))
     sns.barplot(x=quantity, y=items, palette=colors)
     plt.title("Item Popularity", fontsize=16, weight='bold')
     plt.xlabel("Quantity")
     for index, value in enumerate(quantity):
         plt.text(value + 0.5, index, str(value), va='center')
-    plt.tight_layout()
-    plt.savefig(f"{CHARTS_DIR}/item_popularity.png")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    popularity_img = base64.b64encode(buf.getvalue()).decode('utf-8')
+    buf.close()
     plt.close()
 
-    # ---------------------------
-    # 2️⃣ Stock Levels (Gauge-style)
-    # ---------------------------
+    # -----------------------
+    # Stock Levels Chart
+    # -----------------------
     plt.figure(figsize=(10,6))
     max_qty = max(quantity) if len(quantity) > 0 else 1
     stock_percent = quantity / max_qty * 100
@@ -53,6 +53,13 @@ def generate_charts():
     plt.title("Stock Levels", fontsize=16, weight='bold')
     for bar, q in zip(bars, quantity):
         plt.text(bar.get_width() + 1, bar.get_y() + bar.get_height()/2, str(q), va='center')
-    plt.tight_layout()
-    plt.savefig(f"{CHARTS_DIR}/stock_levels.png")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    stock_img = base64.b64encode(buf.getvalue()).decode('utf-8')
+    buf.close()
     plt.close()
+
+    return popularity_img, stock_img
+
