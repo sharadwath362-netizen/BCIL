@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg')  # Important for serverless environments
+matplotlib.use('Agg')  # Serverless-safe backend
 
 import sqlite3
 import pandas as pd
@@ -8,7 +8,7 @@ import seaborn as sns
 import io
 import base64
 
-DB_PATH = "/tmp/inventory.db"  # Your DB path
+DB_PATH = "/tmp/inventory.db"
 
 def generate_charts_base64():
     """
@@ -24,17 +24,15 @@ def generate_charts_base64():
     items = df['name'].to_numpy()
     quantity = df['quantity'].to_numpy()
 
-    # -----------------------
-    # Item Popularity Chart
-    # -----------------------
+    # -------- Item Popularity --------
     plt.figure(figsize=(10,6))
     sns.set_style("whitegrid")
     colors = sns.color_palette("viridis", len(items))
     sns.barplot(x=quantity, y=items, palette=colors)
     plt.title("Item Popularity", fontsize=16, weight='bold')
     plt.xlabel("Quantity")
-    for index, value in enumerate(quantity):
-        plt.text(value + 0.5, index, str(value), va='center')
+    for idx, val in enumerate(quantity):
+        plt.text(val + 0.5, idx, str(val), va='center')
 
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
@@ -43,9 +41,7 @@ def generate_charts_base64():
     buf.close()
     plt.close()
 
-    # -----------------------
-    # Stock Levels Chart
-    # -----------------------
+    # -------- Stock Levels --------
     plt.figure(figsize=(10,6))
     max_qty = max(quantity) if len(quantity) > 0 else 1
     stock_percent = quantity / max_qty * 100
@@ -65,5 +61,4 @@ def generate_charts_base64():
     plt.close()
 
     return popularity_img, stock_img
-
 
