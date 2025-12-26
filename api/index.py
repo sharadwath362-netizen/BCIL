@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
-import os
 
 app = Flask(
     __name__,
@@ -27,9 +26,8 @@ def init_db():
     conn.commit()
     conn.close()
 
-@app.before_first_request
-def setup():
-    init_db()
+# Initialize DB immediately (important for Vercel)
+init_db()
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -41,12 +39,21 @@ def index():
         name = request.form["name"]
         quantity = int(request.form["quantity"])
 
-        cur.execute("""
-            INSERT INTO inventory (barcode, name, quantity)
-            VALUES (?, ?, ?)
-            ON CONFLICT(barcode) DO UPDATE SET
-            quantity = quantity + excluded.quantity
-        """, (barcode, name, quantity))
+        # 🔥 SAFE UPSERT LOGIC
+        cur.execute("SELECT quantity FROM inventory WHERE barcode = ?", (barcode,))
+        row = cur.fetchone()
+
+        if row:
+            new_qty = row[0] + quantity
+            cur.execute(
+                "UPDATE inventory SET quantity = ? WHERE barcode = ?",
+                (new_qty, barcode)
+            )
+        else:
+            cur.execute(
+                "INSERT INTO inventory (barcode, name, quantity) VALUES (?, ?, ?)",
+                (barcode, name, quantity)
+            )
 
         conn.commit()
         conn.close()
@@ -66,3 +73,4 @@ def delete(item_id):
     conn.commit()
     conn.close()
     return redirect("/")
+
