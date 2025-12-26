@@ -7,18 +7,13 @@
 </head>
 <body>
 
-<div class="site-header">
-    <img src="/static/college_logo.png" alt="College Logo" class="college-logo">
-
-    <div class="header-text">
-        <h2>Barcode Based Inventory System</h2>
-        <p class="subtitle">Experiential Learning - Python</p>
-        <p class="subtitle">
-            Developed by: <strong>Sharadwath S D</strong> | USN: <strong>RVCE25BCY030</strong><br>
-            <strong>Adarsh C</strong> | USN: <strong>RVCE25BCY033</strong><br>
-            <strong>Soham G Devarahalli</strong> | USN: <strong>RVCE25BCY028</strong><br>
-            <strong>Advik Kamath</strong> | USN: <strong>RVCE25BCY023</strong>
-        </p>
+<!-- HEADER -->
+<div style="display:flex; align-items:center; gap:15px; padding:20px;">
+    <img src="/static/college_logo.png" alt="College Logo" style="height:70px;">
+    <div>
+        <h2 style="margin-bottom:4px;">Barcode Based Inventory System</h2>
+        <p style="margin-top:2px;">Experiential Learning – Python</p>
+        <p><b>Developed by:</b> Sharadwath S D | <b>USN:</b> RVCE25BCY030</p>
     </div>
 </div>
 
@@ -27,170 +22,63 @@
     <button onclick="showTab('logs')">Time Log</button>
 </div>
 
-<!-- INVENTORY TAB -->
+<!-- INVENTORY -->
 <div id="inventory" class="tab">
-
-    <h3>Inventory Overview</h3>
-    <canvas id="stockChart" width="400" height="200"></canvas>
-
     <h3>Add Item</h3>
-    <form onsubmit="addItem(); return false;">
-        <input type="text" id="add_barcode" placeholder="Scan / Enter Barcode" required>
-        <input type="number" id="add_quantity" placeholder="Quantity to Add" min="1" required>
-        <button type="submit">Add</button>
+    <form action="/add" method="post">
+        <input type="text" name="barcode" placeholder="Scan Barcode" required>
+        <input type="number" name="quantity" min="1" required>
+        <button>Add</button>
     </form>
 
     <h3>Remove Item</h3>
-    <form onsubmit="removeItem(); return false;">
-        <input type="text" id="remove_barcode" placeholder="Enter Barcode" required>
-        <input type="number" id="remove_quantity" placeholder="Quantity to Remove" min="1" required>
-        <button type="submit">Remove</button>
+    <form action="/remove" method="post">
+        <input type="text" name="barcode" required>
+        <input type="number" name="quantity" min="1" required>
+        <button>Remove</button>
     </form>
-
-    <button onclick="resetInventory()" 
-            style="margin-top:15px; background-color:#c0392b; color:white; padding:8px 12px; border:none; cursor:pointer;">
-        Clear Inventory
-    </button>
 
     <h3>Current Inventory</h3>
     <table>
+        <tr><th>ID</th><th>Barcode</th><th>Qty</th><th>Updated</th></tr>
+        {% for i in inventory %}
         <tr>
-            <th>Barcode</th>
-            <th>Quantity</th>
-            <th>Last Updated</th>
-        </tr>
-        {% for item in inventory %}
-        <tr>
-            <td>{{ item.barcode }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.updated_time }}</td>
+            <td>{{ i[0] }}</td>
+            <td>{{ i[1] }}</td>
+            <td>{{ i[2] }}</td>
+            <td>{{ i[3] }}</td>
         </tr>
         {% endfor %}
     </table>
-
 </div>
 
-<!-- LOG TAB -->
+<!-- LOGS -->
 <div id="logs" class="tab" style="display:none">
+    <h3>Inventory Logs</h3>
 
-    <h3>Inventory Time Log</h3>
-
-    <div class="export-buttons">
-        <a href="/export/excel"><button>Export to Excel</button></a>
-        <a href="/export/pdf"><button>Export to PDF</button></a>
-    </div>
+    <a href="/export/excel"><button>Export Excel</button></a>
+    <a href="/export/pdf"><button>Export PDF</button></a>
 
     <table>
+        <tr><th>ID</th><th>Barcode</th><th>Action</th><th>Qty</th><th>Time</th></tr>
+        {% for l in logs %}
         <tr>
-            <th>Barcode</th>
-            <th>Action</th>
-            <th>Quantity</th>
-            <th>Time</th>
-        </tr>
-        {% for log in logs %}
-        <tr>
-            <td>{{ log.barcode }}</td>
-            <td>{{ log.action }}</td>
-            <td>{{ log.quantity }}</td>
-            <td>{{ log.time }}</td>
+            <td>{{ l[0] }}</td>
+            <td>{{ l[1] }}</td>
+            <td>{{ l[2] }}</td>
+            <td>{{ l[3] }}</td>
+            <td>{{ l[4] }}</td>
         </tr>
         {% endfor %}
     </table>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-function showTab(tabName) {
+function showTab(tab) {
     document.getElementById("inventory").style.display = "none";
     document.getElementById("logs").style.display = "none";
-    document.getElementById(tabName).style.display = "block";
+    document.getElementById(tab).style.display = "block";
 }
-
-// -------- ADD ITEM --------
-function addItem() {
-    fetch("/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            barcode: document.getElementById("add_barcode").value,
-            quantity: document.getElementById("add_quantity").value
-        })
-    })
-    .then(res => res.json())
-    .then(() => {
-        loadChart();
-        location.reload();
-    });
-}
-
-// -------- REMOVE ITEM --------
-function removeItem() {
-    fetch("/remove", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            barcode: document.getElementById("remove_barcode").value,
-            quantity: document.getElementById("remove_quantity").value
-        })
-    })
-    .then(res => res.json())
-    .then(() => {
-        loadChart();
-        location.reload();
-    });
-}
-    
-function resetInventory() {
-    if (!confirm("Are you sure you want to clear all inventory and logs?")) {
-        return;
-    }
-
-    fetch("/reset", { method: "POST" })
-    .then(res => res.json())
-    .then(data => {
-        alert("Inventory cleared successfully!");
-        loadChart();
-        location.reload();
-    });
-}
-
-// -------- LOAD INVENTORY CHART --------
-function loadChart() {
-    fetch('/inventory-data')
-    .then(res => res.json())
-    .then(data => {
-        const labels = data.map(i => i.item);
-        const quantities = data.map(i => i.quantity);
-
-        const ctx = document.getElementById('stockChart').getContext('2d');
-
-        if (window.stockChartInstance) {
-            window.stockChartInstance.destroy();
-        }
-
-        window.stockChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Quantity in Stock',
-                    data: quantities,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } }
-            }
-        });
-    });
-}
-
-// Load chart on page load
-window.onload = loadChart;
 </script>
 
 </body>
