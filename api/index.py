@@ -26,7 +26,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Initialize DB immediately (important for Vercel)
+# Init DB immediately (Vercel-safe)
 init_db()
 
 @app.route("/", methods=["GET", "POST"])
@@ -38,22 +38,47 @@ def index():
         barcode = request.form["barcode"]
         name = request.form["name"]
         quantity = int(request.form["quantity"])
+        action = request.form["action"]  # add / remove
 
-        # 🔥 SAFE UPSERT LOGIC
-        cur.execute("SELECT quantity FROM inventory WHERE barcode = ?", (barcode,))
+        cur.execute("SELECT id, quantity FROM inventory WHERE barcode = ?", (barcode,))
         row = cur.fetchone()
 
-        if row:
-            new_qty = row[0] + quantity
-            cur.execute(
-                "UPDATE inventory SET quantity = ? WHERE barcode = ?",
-                (new_qty, barcode)
-            )
-        else:
-            cur.execute(
-                "INSERT INTO inventory (barcode, name, quantity) VALUES (?, ?, ?)",
-                (barcode, name, quantity)
-            )
+        # ➕ ADD LOGIC
+        if action == "add":
+            if row:
+                new_qty = row[1] + quantity
+                cur.execute(
+                    "UPDATE inventory SET quantity = ? WHERE barcode = ?",
+                    (new_qty, barcode)
+                )
+            else:
+                cur.execute(
+                    "INSERT INTO inventory (barcode, name, quantity) VALUES (?, ?, ?)",
+                    (barcode, name, quantity)
+                )
+
+        # ➖ REMOVE LOGIC
+        elif action == "remove":
+            if not row:
+                # Barcode not found → do nothing
+                conn.close()
+                return redirect("/")
+
+            current_qty = row[1]
+
+            if quantity >= current_qty:
+                # Remove completely if quantity reaches 0 or below
+                cur.execute(
+                    "DELETE FROM inventory WHERE barcode = ?",
+                    (barcode,)
+                )
+            else:
+                # Reduce quantity
+                new_qty = current_qty - quantity
+                cur.execute(
+                    "UPDATE inventory SET quantity = ? WHERE barcode = ?",
+                    (new_qty, barcode)
+                )
 
         conn.commit()
         conn.close()
@@ -73,4 +98,3 @@ def delete(item_id):
     conn.commit()
     conn.close()
     return redirect("/")
-
