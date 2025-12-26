@@ -1,102 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Barcode Inventory System</title>
-
-    <!-- IMPORTANT: Flask-safe static loading -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Inventory System</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-    <img src="{{ url_for('static', filename='college_logo.png') }}" alt="College Logo">
+<div class="container">
+    <h1>📦 Inventory Log</h1>
 
-    <div>
-        <h2>Barcode Based Inventory System</h2>
-        <p>Experiential Learning – Python</p>
-        <p><b>Developed by:</b> Sharadwath S D | <b>USN:</b> RVCE25BCY030</p>
-    </div>
-</header>
-
-<!-- TABS -->
-<div class="tabs">
-    <button onclick="showTab('inventory')">Inventory</button>
-    <button onclick="showTab('logs')">Time Log</button>
-</div>
-
-<!-- INVENTORY TAB -->
-<div id="inventory" class="tab">
-    <h3>Add Item</h3>
-    <form action="/add" method="post">
-        <input type="text" name="barcode" placeholder="Scan / Enter Barcode" required>
-        <input type="number" name="quantity" placeholder="Quantity to Add" min="1" required>
-        <button type="submit">Add</button>
+    <form method="POST">
+        <input type="text" name="barcode" placeholder="Barcode" required>
+        <input type="text" name="name" placeholder="Item Name" required>
+        <input type="number" name="quantity" placeholder="Quantity" required>
+        <button type="submit">Add / Update</button>
     </form>
 
-    <h3>Remove Item</h3>
-    <form action="/remove" method="post">
-        <input type="text" name="barcode" placeholder="Enter Barcode" required>
-        <input type="number" name="quantity" placeholder="Quantity to Remove" min="1" required>
-        <button type="submit">Remove</button>
-    </form>
-
-    <h3>Current Inventory</h3>
     <table>
         <tr>
             <th>ID</th>
             <th>Barcode</th>
-            <th>Quantity</th>
-            <th>Last Updated</th>
+            <th>Name</th>
+            <th>Qty</th>
+            <th>Action</th>
         </tr>
-        {% for item in inventory %}
+
+        {% for item in items %}
         <tr>
             <td>{{ item[0] }}</td>
             <td>{{ item[1] }}</td>
             <td>{{ item[2] }}</td>
             <td>{{ item[3] }}</td>
+            <td>
+                <a class="delete" href="/delete/{{ item[0] }}">Delete</a>
+            </td>
         </tr>
         {% endfor %}
     </table>
 </div>
-
-<!-- LOGS TAB -->
-<div id="logs" class="tab" style="display:none">
-    <h3>Inventory Time Log</h3>
-
-    <div style="margin-bottom: 15px;">
-        <a href="/export/excel"><button>Export Excel</button></a>
-        <a href="/export/pdf"><button>Export PDF</button></a>
-    </div>
-
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Barcode</th>
-            <th>Action</th>
-            <th>Quantity</th>
-            <th>Time</th>
-        </tr>
-        {% for log in logs %}
-        <tr>
-            <td>{{ log[0] }}</td>
-            <td>{{ log[1] }}</td>
-            <td>{{ log[2] }}</td>
-            <td>{{ log[3] }}</td>
-            <td>{{ log[4] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-</div>
-
-<script>
-function showTab(tabName) {
-    document.getElementById("inventory").style.display = "none";
-    document.getElementById("logs").style.display = "none";
-    document.getElementById(tabName).style.display = "block";
-}
-</script>
 
 </body>
 </html>
+
