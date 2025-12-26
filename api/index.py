@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
+import os
+import visualizations  # Import the visualizations file
 
 app = Flask(
     __name__,
@@ -9,6 +11,9 @@ app = Flask(
 
 DB_PATH = "/tmp/inventory.db"
 
+# ------------------------------
+# Database helper functions
+# ------------------------------
 def get_db():
     return sqlite3.connect(DB_PATH)
 
@@ -26,9 +31,12 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Init DB immediately (Vercel-safe)
+# Initialize DB immediately
 init_db()
 
+# ------------------------------
+# Routes
+# ------------------------------
 @app.route("/", methods=["GET", "POST"])
 def index():
     conn = get_db()
@@ -38,12 +46,13 @@ def index():
         barcode = request.form["barcode"]
         name = request.form["name"]
         quantity = int(request.form["quantity"])
-        action = request.form["action"]  # add / remove
+        action = request.form["action"]  # "add" or "remove"
 
+        # Check if the item already exists
         cur.execute("SELECT id, quantity FROM inventory WHERE barcode = ?", (barcode,))
         row = cur.fetchone()
 
-        # ➕ ADD LOGIC
+        # ➕ Add stock
         if action == "add":
             if row:
                 new_qty = row[1] + quantity
@@ -57,36 +66,32 @@ def index():
                     (barcode, name, quantity)
                 )
 
-        # ➖ REMOVE LOGIC
+        # ➖ Remove stock
         elif action == "remove":
-            if not row:
-                # Barcode not found → do nothing
-                conn.close()
-                return redirect("/")
-
-            current_qty = row[1]
-
-            if quantity >= current_qty:
-                # Remove completely if quantity reaches 0 or below
-                cur.execute(
-                    "DELETE FROM inventory WHERE barcode = ?",
-                    (barcode,)
-                )
-            else:
-                # Reduce quantity
-                new_qty = current_qty - quantity
-                cur.execute(
-                    "UPDATE inventory SET quantity = ? WHERE barcode = ?",
-                    (new_qty, barcode)
-                )
+            if row:
+                current_qty = row[1]
+                if quantity >= current_qty:
+                    # Remove completely if quantity is zero or below
+                    cur.execute("DELETE FROM inventory WHERE barcode = ?", (barcode,))
+                else:
+                    new_qty = current_qty - quantity
+                    cur.execute(
+                        "UPDATE inventory SET quantity = ? WHERE barcode = ?",
+                        (new_qty, barcode)
+                    )
+            # If item doesn't exist, do nothing
 
         conn.commit()
         conn.close()
         return redirect("/")
 
+    # GET request: fetch all items for display
     cur.execute("SELECT * FROM inventory")
     items = cur.fetchall()
     conn.close()
+
+    # Generate charts based on current inventory
+    visualizations.generate_charts()
 
     return render_template("index.html", items=items)
 
@@ -98,3 +103,7 @@ def delete(item_id):
     conn.commit()
     conn.close()
     return redirect("/")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
