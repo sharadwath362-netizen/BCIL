@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, redirect, send_file
+import sqlite3
 from datetime import datetime
-import firebase_admin
-from firebase_admin import credentials, firestore
+import pandas as pd
+from fpdf import FPDF
+import os
 
 app = Flask(
     __name__,
@@ -9,98 +11,168 @@ app = Flask(
     static_folder="../static"
 )
 
-# ---------------- FIREBASE INITIALIZATION ---------------- #
-cred = credentials.Certificate("firebase_key.json")  # Path to your Firebase service account JSON
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+DB_PATH = "/tmp/inventory.db"
+LOGO_PATH = os.path.join(app.static_folder, "college_logo.png")
 
-# ---------------- HOME PAGE ---------------- #
+
+def get_db():
+    return sqlite3.connect(DB_PATH)
+
+
+def init_db():
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS inventory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            barcode TEXT UNIQUE,
+            quantity INTEGER,
+            updated_time TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            barcode TEXT,
+            action TEXT,
+            quantity INTEGER,
+            time TEXT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+init_db()
+
+
 @app.route("/")
 def index():
-    items_ref = db.collection("inventory")
-    docs = items_ref.order_by("updated_time", direction=firestore.Query.DESCENDING).stream()
-    inventory = [doc.to_dict() for doc in docs]
+    conn = get_db()
+    cur = conn.cursor()
 
-    logs_ref = db.collection("logs")
-    logs_docs = logs_ref.order_by("time", direction=firestore.Query.DESCENDING).stream()
-    logs = [doc.to_dict() for doc in logs_docs]
+    inventory = cur.execute("SELECT * FROM inventory ORDER BY id DESC").fetchall()
+    logs = cur.execute("SELECT * FROM logs ORDER BY id DESC").fetchall()
 
+    conn.close()
     return render_template("index.html", inventory=inventory, logs=logs)
 
-# ---------------- ADD ITEM ---------------- #
+
 @app.route("/add", methods=["POST"])
 def add_item():
-    data = request.get_json()
-    barcode = data.get("barcode")
-    qty = int(data.get("quantity", 0))
+    barcode = request.form["barcode"]
+    qty = int(request.form["quantity"])
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if not barcode or qty <= 0:
-        return jsonify({"status": "error", "message": "Invalid input"}), 400
+    conn = get_db()
+    cur = conn.cursor()
 
-    item_ref = db.collection("inventory").document(barcode)
-    item = item_ref.get()
-    if item.exists:
-        new_qty = item.to_dict().get("quantity", 0) + qty
-        item_ref.update({"quantity": new_qty, "updated_time": time})
+    cur.execute("SELECT quantity FROM inventory WHERE barcode=?", (barcode,))
+    row = cur.fetchone()
+
+    if row:
+        cur.execute(
+            "UPDATE inventory SET quantity=?, updated_time=? WHERE barcode=?",
+            (row[0] + qty, time, barcode)
+        )
     else:
-        item_ref.set({"barcode": barcode, "quantity": qty, "updated_time": time})
+        cur.execute(
+            "INSERT INTO inventory (barcode, quantity, updated_time) VALUES (?, ?, ?)",
+            (barcode, qty, time)
+        )
 
-    # Add log
-    db.collection("logs").add({"barcode": barcode, "action": "Added", "quantity": qty, "time": time})
+    cur.execute(
+        "INSERT INTO logs (barcode, action, quantity, time) VALUES (?, 'Added', ?, ?)",
+        (barcode, qty, time)
+    )
 
-    return jsonify({"status": "success"})
+    conn.commit()
+    conn.close()
+    return redirect("/")
 
-# ---------------- REMOVE ITEM ---------------- #
+
 @app.route("/remove", methods=["POST"])
 def remove_item():
-    data = request.get_json()
-    barcode = data.get("barcode")
-    qty = int(data.get("quantity", 0))
+    barcode = request.form["barcode"]
+    qty = int(request.form["quantity"])
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if not barcode or qty <= 0:
-        return jsonify({"status": "error", "message": "Invalid input"}), 400
+    conn = get_db()
+    cur = conn.cursor()
 
-    item_ref = db.collection("inventory").document(barcode)
-    item = item_ref.get()
-    if not item.exists:
-        return jsonify({"status": "error", "message": "Item not found"}), 404
+    cur.execute("SELECT quantity FROM inventory WHERE barcode=?", (barcode,))
+    row = cur.fetchone()
 
-    remaining = item.to_dict().get("quantity", 0) - qty
-    if remaining > 0:
-        item_ref.update({"quantity": remaining, "updated_time": time})
-    else:
-        item_ref.delete()
+    if row:
+        remaining = row[0] - qty
+        if remaining > 0:
+            cur.execute(
+                "UPDATE inventory SET quantity=?, updated_time=? WHERE barcode=?",
+                (remaining, time, barcode)
+            )
+        else:
+            cur.execute("DELETE FROM inventory WHERE barcode=?", (barcode,))
 
-    # Add log
-    db.collection("logs").add({"barcode": barcode, "action": "Removed", "quantity": qty, "time": time})
+        cur.execute(
+            "INSERT INTO logs (barcode, action, quantity, time) VALUES (?, 'Removed', ?, ?)",
+            (barcode, qty, time)
+        )
 
-    return jsonify({"status": "success"})
+    conn.commit()
+    conn.close()
+    return redirect("/")
 
-# ---------------- RESET INVENTORY ---------------- #
-@app.route("/reset", methods=["POST"])
-def reset_inventory():
-    # Delete all items
-    items = db.collection("inventory").stream()
-    for item in items:
-        db.collection("inventory").document(item.id).delete()
 
-    # Delete all logs
-    logs = db.collection("logs").stream()
+# ---------- EXPORT EXCEL ----------
+@app.route("/export/excel")
+def export_excel():
+    conn = get_db()
+    df = pd.read_sql_query("SELECT * FROM logs ORDER BY id DESC", conn)
+    conn.close()
+
+    file_path = "/tmp/inventory_logs.xlsx"
+    df.to_excel(file_path, index=False)
+
+    return send_file(file_path, as_attachment=True)
+
+
+# ---------- EXPORT PDF ----------
+@app.route("/export/pdf")
+def export_pdf():
+    conn = get_db()
+    logs = conn.execute("SELECT * FROM logs ORDER BY id DESC").fetchall()
+    conn.close()
+
+    pdf = FPDF()
+    pdf.add_page()
+
+    # Header Logo
+    if os.path.exists(LOGO_PATH):
+        pdf.image(LOGO_PATH, x=10, y=8, w=18)
+
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "Barcode Based Inventory Log", ln=True, align="C")
+    pdf.ln(6)
+
+    # Watermark
+    if os.path.exists(LOGO_PATH):
+        pdf.set_alpha(0.08)
+        pdf.image(LOGO_PATH, x=35, y=70, w=140)
+        pdf.set_alpha(1)
+
+    pdf.set_font("Arial", size=10)
+
     for log in logs:
-        db.collection("logs").document(log.id).delete()
+        pdf.cell(0, 8, f"{log[1]} | {log[2]} | Qty: {log[3]} | {log[4]}", ln=True)
 
-    return jsonify({"status": "inventory_cleared"})
+    file_path = "/tmp/inventory_logs.pdf"
+    pdf.output(file_path)
 
-# ---------------- INVENTORY DATA FOR CHART.JS ---------------- #
-@app.route("/inventory-data")
-def inventory_data():
-    items_ref = db.collection("inventory")
-    docs = items_ref.stream()
-    data = [{"item": doc.to_dict()["barcode"], "quantity": doc.to_dict()["quantity"]} for doc in docs]
-    return jsonify(data)
+    return send_file(file_path, as_attachment=True)
 
-# Required for Vercel
+
+# Vercel entry point
 app = app
-
