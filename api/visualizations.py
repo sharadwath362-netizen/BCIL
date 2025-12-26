@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')  # Important for serverless environments
+
 import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -62,4 +65,5 @@ def generate_charts_base64():
     plt.close()
 
     return popularity_img, stock_img
+
 
