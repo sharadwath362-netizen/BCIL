@@ -10,7 +10,6 @@
 <div class="container">
     <h1>📦 Inventory Management System</h1>
 
-    <!-- Inventory Form -->
     <form method="POST" class="inventory-form">
         <input type="text" name="barcode" placeholder="Barcode" required>
         <input type="text" name="name" placeholder="Item Name (required for Add)">
@@ -22,7 +21,6 @@
         <button type="submit">Submit</button>
     </form>
 
-    <!-- Inventory Table -->
     <table>
         <thead>
             <tr>
@@ -40,15 +38,12 @@
                 <td>{{ item[1] }}</td>
                 <td>{{ item[2] }}</td>
                 <td>{{ item[3] }}</td>
-                <td>
-                    <a href="/delete/{{ item[0] }}" class="delete-btn">Delete</a>
-                </td>
+                <td><a href="/delete/{{ item[0] }}" class="delete-btn">Delete</a></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <!-- Charts Section -->
     <div class="charts">
         <h2>📊 Item Popularity</h2>
         {% if popularity_img %}
@@ -68,3 +63,4 @@
 
 </body>
 </html>
+
