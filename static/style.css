@@ -1,4 +1,4 @@
-/* Global */
+/* ================= GLOBAL ================= */
 body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #eef4ff, #f7fbff);
@@ -7,21 +7,41 @@ body {
     color: #333;
 }
 
-/* Page container */
+/* Page width control */
 body > * {
     max-width: 1100px;
     margin: auto;
 }
 
-/* Heading */
+/* ================= HEADER ================= */
+header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 10px;
+}
+
+header img {
+    height: 70px;
+}
+
+/* Main title */
 h2 {
-    text-align: center;
-    padding: 12px 0 6px 0;  /* reduced bottom padding */
-    margin-bottom: 4px;    /* reduce gap below title */
+    text-align: left;
+    padding: 10px 0 4px 0;   /* reduced spacing */
+    margin: 0;
     color: #1f3c88;
 }
 
-/* Tabs */
+/* Subtitle + details */
+p {
+    margin-top: 2px;       /* reduces gap */
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #444;
+}
+
+/* ================= TABS ================= */
 .tabs {
     display: flex;
     justify-content: center;
@@ -43,24 +63,32 @@ h2 {
 .tabs button:hover {
     background: #1f3c88;
     color: white;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 18px rgba(31, 60, 136, 0.35);
 }
 
-/* Card-style sections */
+/* ================= CARD SECTIONS ================= */
 .tab {
     background: white;
     border-radius: 14px;
     padding: 25px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
     margin-bottom: 40px;
+    animation: fadeInUp 0.6s ease both;
 }
 
-/* Section titles */
+.tab:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 20px 40px rgba(31, 60, 136, 0.15);
+}
+
+/* Section headings */
 h3 {
     color: #1f3c88;
     margin-top: 0;
 }
 
-/* Forms */
+/* ================= FORMS ================= */
 form {
     display: flex;
     flex-wrap: wrap;
@@ -75,15 +103,21 @@ input {
     font-size: 14px;
     flex: 1;
     min-width: 180px;
-    transition: border 0.3s;
+    transition: all 0.25s ease;
+}
+
+input:hover {
+    box-shadow: 0 0 0 2px rgba(63, 114, 175, 0.15);
 }
 
 input:focus {
     outline: none;
     border-color: #1f3c88;
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(31, 60, 136, 0.25);
 }
 
-/* Buttons */
+/* ================= BUTTONS ================= */
 button {
     padding: 10px 20px;
     border-radius: 8px;
@@ -93,6 +127,8 @@ button {
     font-size: 14px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
 }
 
 button:hover {
@@ -100,7 +136,22 @@ button:hover {
     box-shadow: 0 6px 15px rgba(31, 60, 136, 0.3);
 }
 
-/* Tables */
+button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center,
+        rgba(255, 255, 255, 0.25),
+        transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+button:hover::after {
+    opacity: 1;
+}
+
+/* ================= TABLES ================= */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -128,105 +179,32 @@ tr:nth-child(even) {
     background: #f4f7ff;
 }
 
-tr:hover {
-    background: #e9f0ff;
-}
-
-/* Log table slightly different feel */
-#logs table th {
-    background: #3f72af;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    form {
-        flex-direction: column;
-    }
-
-    button {
-        width: 100%;
-    }
-}
-
-/* Smooth global transitions */
-* {
-    transition: background-color 0.3s ease,
-                color 0.3s ease,
-                transform 0.25s ease,
-                box-shadow 0.25s ease,
-                border 0.25s ease;
-}
-
-/* Card hover animation */
-.tab:hover {
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: 0 20px 40px rgba(31, 60, 136, 0.15);
-}
-
-/* Button hover pulse */
-button {
-    position: relative;
-    overflow: hidden;
-}
-
-button::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center,
-        rgba(255, 255, 255, 0.25),
-        transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-button:hover::after {
-    opacity: 1;
-}
-
-/* Input hover glow */
-input:hover {
-    box-shadow: 0 0 0 2px rgba(63, 114, 175, 0.15);
-}
-
-/* Input focus animation */
-input:focus {
-    transform: scale(1.02);
-    box-shadow: 0 6px 16px rgba(31, 60, 136, 0.25);
-}
-
-/* Table row hover lift */
 tr {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 tr:hover {
+    background: #e9f0ff;
     transform: translateY(-2px);
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 }
 
-/* Tab buttons interaction */
-.tabs button:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 6px 18px rgba(31, 60, 136, 0.35);
+/* Logs table variant */
+#logs table th {
+    background: #3f72af;
 }
 
-/* Subtle cursor feedback */
+/* ================= CURSOR ================= */
 body {
     cursor: default;
 }
 
 button,
-input,
-.tabs button {
+input {
     cursor: pointer;
 }
 
-/* Smooth page load animation */
-.tab {
-    animation: fadeInUp 0.6s ease both;
-}
-
+/* ================= ANIMATIONS ================= */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -238,54 +216,22 @@ input,
     }
 }
 
-/* Export Buttons Styling */
-.export-buttons {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-    justify-content: flex-start;
-}
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
 
-.export-buttons button {
-    background: linear-gradient(135deg, #f57c00, #ffb74d);
-    color: white;
-    font-weight: bold;
-    padding: 10px 22px;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
+    h2 {
+        text-align: center;
+    }
 
-.export-buttons button:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 6px 18px rgba(245, 124, 0, 0.35);
-}
+    form {
+        flex-direction: column;
+    }
 
-.export-buttons a {
-    text-decoration: none;
-}
-
-/* Website Header with College Logo */
-.site-header {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    padding: 20px 10px;
-    margin-bottom: 10px;
-}
-
-.college-logo {
-    width: 65px;
-    height: auto;
-}
-
-.header-text h2 {
-    margin: 0;
-    color: #1f3c88;
-}
-
-.subtitle {
-    margin: 4px 0 0;
-    font-size: 14px;
-    color: #555;
+    button {
+        width: 100%;
+    }
 }
