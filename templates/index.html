@@ -10,21 +10,19 @@
 <div class="container">
     <h1>📦 Inventory Management System</h1>
 
+    <!-- Inventory Form -->
     <form method="POST" class="inventory-form">
         <input type="text" name="barcode" placeholder="Barcode" required>
-
         <input type="text" name="name" placeholder="Item Name (required for Add)">
-
         <input type="number" name="quantity" placeholder="Quantity" min="1" required>
-
         <select name="action" required>
             <option value="add">➕ Add</option>
             <option value="remove">➖ Remove</option>
         </select>
-
         <button type="submit">Submit</button>
     </form>
 
+    <!-- Inventory Table -->
     <table>
         <thead>
             <tr>
@@ -49,8 +47,16 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Charts Section -->
+    <div class="charts">
+        <h2>📊 Item Popularity</h2>
+        <img src="{{ url_for('static', filename='charts/item_popularity.png') }}" alt="Item Popularity">
+
+        <h2>📊 Stock Levels</h2>
+        <img src="{{ url_for('static', filename='charts/stock_levels.png') }}" alt="Stock Levels">
+    </div>
 </div>
 
 </body>
 </html>
-
