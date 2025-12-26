@@ -51,10 +51,18 @@
     <!-- Charts Section -->
     <div class="charts">
         <h2>📊 Item Popularity</h2>
-        <img src="{{ url_for('static', filename='charts/item_popularity.png') }}" alt="Item Popularity">
+        {% if popularity_img %}
+            <img src="data:image/png;base64,{{ popularity_img }}" alt="Item Popularity">
+        {% else %}
+            <p>No data to display.</p>
+        {% endif %}
 
         <h2>📊 Stock Levels</h2>
-        <img src="{{ url_for('static', filename='charts/stock_levels.png') }}" alt="Stock Levels">
+        {% if stock_img %}
+            <img src="data:image/png;base64,{{ stock_img }}" alt="Stock Levels">
+        {% else %}
+            <p>No data to display.</p>
+        {% endif %}
     </div>
 </div>
 
