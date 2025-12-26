@@ -10,9 +10,7 @@ app = Flask(
 
 DB_PATH = "/tmp/inventory.db"
 
-# ------------------------------
-# DB Initialization
-# ------------------------------
+# ------------------ DB Setup ------------------
 def get_db():
     return sqlite3.connect(DB_PATH)
 
@@ -32,9 +30,7 @@ def init_db():
 
 init_db()
 
-# ------------------------------
-# Routes
-# ------------------------------
+# ------------------ Routes ------------------
 @app.route("/", methods=["GET", "POST"])
 def index():
     conn = get_db()
@@ -44,35 +40,33 @@ def index():
         barcode = request.form["barcode"]
         name = request.form["name"]
         quantity = int(request.form["quantity"])
-        action = request.form["action"]  # "add" or "remove"
+        action = request.form["action"]
 
         cur.execute("SELECT id, quantity FROM inventory WHERE barcode = ?", (barcode,))
         row = cur.fetchone()
 
         if action == "add":
             if row:
-                new_qty = row[1] + quantity
-                cur.execute("UPDATE inventory SET quantity = ? WHERE barcode = ?", (new_qty, barcode))
+                cur.execute("UPDATE inventory SET quantity = ? WHERE barcode = ?", (row[1]+quantity, barcode))
             else:
                 cur.execute("INSERT INTO inventory (barcode, name, quantity) VALUES (?, ?, ?)", (barcode, name, quantity))
         elif action == "remove" and row:
-            current_qty = row[1]
-            if quantity >= current_qty:
+            new_qty = max(row[1] - quantity, 0)
+            if new_qty == 0:
                 cur.execute("DELETE FROM inventory WHERE barcode = ?", (barcode,))
             else:
-                new_qty = current_qty - quantity
                 cur.execute("UPDATE inventory SET quantity = ? WHERE barcode = ?", (new_qty, barcode))
 
         conn.commit()
         conn.close()
         return redirect("/")
 
-    # GET request: fetch all items
+    # GET: Fetch inventory
     cur.execute("SELECT * FROM inventory")
     items = cur.fetchall()
     conn.close()
 
-    # Generate charts as base64 strings (serverless-safe)
+    # Generate serverless-safe charts
     popularity_img, stock_img = visualizations.generate_charts_base64()
 
     return render_template("index.html", items=items, popularity_img=popularity_img, stock_img=stock_img)
