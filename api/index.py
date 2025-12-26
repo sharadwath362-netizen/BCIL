@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
 import visualizations
+import os
 
 app = Flask(
     __name__,
@@ -10,30 +11,28 @@ app = Flask(
 
 DB_PATH = "/tmp/inventory.db"
 
-# ------------------ DB Setup ------------------
-def get_db():
-    return sqlite3.connect(DB_PATH)
-
+# ------------------ Helper: Initialize DB if missing ------------------
 def init_db():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS inventory (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            barcode TEXT UNIQUE,
-            name TEXT,
-            quantity INTEGER
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-init_db()
+    if not os.path.exists(DB_PATH):
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS inventory (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                barcode TEXT UNIQUE,
+                name TEXT,
+                quantity INTEGER
+            )
+        """)
+        conn.commit()
+        conn.close()
 
 # ------------------ Routes ------------------
 @app.route("/", methods=["GET", "POST"])
 def index():
-    conn = get_db()
+    init_db()  # Ensure DB exists each request
+
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
     if request.method == "POST":
@@ -61,22 +60,21 @@ def index():
         conn.close()
         return redirect("/")
 
-    # GET: Fetch inventory
     cur.execute("SELECT * FROM inventory")
     items = cur.fetchall()
     conn.close()
 
-    # Generate serverless-safe charts
+    # Generate charts safely
     popularity_img, stock_img = visualizations.generate_charts_base64()
 
     return render_template("index.html", items=items, popularity_img=popularity_img, stock_img=stock_img)
 
 @app.route("/delete/<int:item_id>")
 def delete(item_id):
-    conn = get_db()
+    init_db()  # Ensure DB exists
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     cur.execute("DELETE FROM inventory WHERE id = ?", (item_id,))
     conn.commit()
     conn.close()
     return redirect("/")
-
