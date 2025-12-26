@@ -25,7 +25,6 @@ h1 {
 }
 
 /* FORM */
-
 .inventory-form {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -71,7 +70,6 @@ h1 {
 }
 
 /* TABLE */
-
 table {
     width: 100%;
     border-collapse: collapse;
@@ -97,7 +95,6 @@ tbody tr:hover {
 }
 
 /* DELETE BUTTON */
-
 .delete-btn {
     color: #ef4444;
     text-decoration: none;
@@ -108,3 +105,24 @@ tbody tr:hover {
     text-decoration: underline;
 }
 
+/* --------------------------
+   Charts Section Styling
+-------------------------- */
+.charts {
+    margin-top: 40px;
+}
+
+.charts h2 {
+    text-align: center;
+    color: #93c5fd;
+    margin-bottom: 15px;
+}
+
+.charts img {
+    display: block;
+    margin: 0 auto 30px auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+}
