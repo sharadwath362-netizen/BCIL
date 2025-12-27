@@ -1,7 +1,7 @@
 /* ------------------ Variables ------------------ */
 :root {
-    --bg-color: #020617;
-    --text-color: #e5e7eb;
+    --bg-color: #020617;         /* Dark background */
+    --text-color: #e5e7eb;       /* Light text */
     --container-bg: #020617;
     --table-border: #1e293b;
     --accent-color: #3b82f6;
@@ -15,12 +15,13 @@ body {
     transition: all 0.3s ease;
 }
 
+/* ------------------ Light Mode Overrides ------------------ */
 body.light-mode {
-    --bg-color: #f9fafb;
-    --text-color: #111827;
-    --container-bg: #ffffff;
-    --table-border: #d1d5db;
-    --accent-color: #2563eb;
+    --bg-color: #f9fafb;         /* Light background */
+    --text-color: #111827;       /* Dark text */
+    --container-bg: #ffffff;     /* Light container */
+    --table-border: #d1d5db;     /* Light table borders */
+    --accent-color: #2563eb;     /* Accent for buttons */
 }
 
 /* ------------------ Container ------------------ */
@@ -30,7 +31,7 @@ body.light-mode {
     background: var(--container-bg);
     padding: 30px;
     border-radius: 14px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
     transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -46,7 +47,7 @@ body.light-mode {
 .header h1 {
     margin: 0;
     font-size: 2em;
-    color: #93c5fd;
+    color: #3b82f6;
     transition: color 0.3s ease;
 }
 
@@ -94,12 +95,11 @@ body.light-mode {
     color: white;
     font-weight: bold;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.3s ease;
 }
 
 .inventory-form button:hover {
-    transform: translateY(-2px);
     filter: brightness(1.1);
+    transform: translateY(-2px);
 }
 
 /* ------------------ Export Button ------------------ */
@@ -138,13 +138,12 @@ th, td {
 }
 
 th {
-    color: #93c5fd;
+    color: #3b82f6;
     font-weight: 600;
 }
 
 tbody tr:hover {
-    background: rgba(255,255,255,0.05);
-    transition: background 0.3s ease;
+    background: rgba(59, 130, 246, 0.05);
 }
 
 /* ------------------ Delete Button ------------------ */
@@ -152,35 +151,10 @@ tbody tr:hover {
     color: #ef4444;
     text-decoration: none;
     font-weight: bold;
-    transition: all 0.3s ease;
 }
 
 .delete-btn:hover {
     text-decoration: underline;
 }
 
-/* ------------------ Theme Toggle Button ------------------ */
-#theme-toggle {
-    margin-left: 20px;
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-#theme-toggle:hover {
-    filter: brightness(1.1);
-}
-
-/* ------------------ Charts Section ------------------ */
-canvas {
-    background: var(--container-bg);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 40px;
-    transition: background 0.3s ease;
-}
+/* ------------------ Theme Toggle Button ----*
