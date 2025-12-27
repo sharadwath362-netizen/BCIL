@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <title>Inventory Management</title>
     <link rel="stylesheet" href="/static/style.css">
-
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -56,6 +54,9 @@
 
         <h2 style="margin-top: 40px;">📊 Stock Levels</h2>
         <canvas id="stockChart"></canvas>
+
+        <h2 style="margin-top: 40px;">📊 Daily Activity</h2>
+        <canvas id="dailyActivityChart"></canvas>
     </div>
 </div>
 
@@ -68,43 +69,52 @@
         {% for item in items %}{{ item[3] }},{% endfor %}
     ];
 
-    // ---------- Item Popularity (Horizontal Bar) ----------
+    // ---------- Item Popularity ----------
     new Chart(document.getElementById("popularityChart"), {
         type: "bar",
+        data: { labels: itemNames, datasets: [{ label: "Quantity", data: quantities, backgroundColor: "#60a5fa" }] },
+        options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // ---------- Stock Levels ----------
+    const maxQty = Math.max(...quantities, 1);
+    const stockColors = quantities.map(q =>
+        q / maxQty < 0.3 ? "#ef4444" : q / maxQty < 0.6 ? "#facc15" : "#22c55e"
+    );
+    new Chart(document.getElementById("stockChart"), {
+        type: "bar",
+        data: { labels: itemNames, datasets: [{ label: "Stock Level", data: quantities, backgroundColor: stockColors }] },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // ---------- Daily Activity Chart (Example) ----------
+    // Example dates and activity counts
+    const dates = ["2025-12-21", "2025-12-22", "2025-12-23", "2025-12-24", "2025-12-25"];
+    const dailyActivity = [5, 8, 2, 10, 6]; // Replace with real data from your logs
+
+    new Chart(document.getElementById("dailyActivityChart"), {
+        type: "line",
         data: {
-            labels: itemNames,
+            labels: dates,
             datasets: [{
-                label: "Quantity",
-                data: quantities,
-                backgroundColor: "#60a5fa"
+                label: "Daily Activity",
+                data: dailyActivity,
+                borderColor: "#3b82f6",
+                backgroundColor: "rgba(59, 130, 246, 0.2)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 7
             }]
         },
         options: {
-            indexAxis: "y",
             responsive: true,
-            plugins: { legend: { display: false } }
+            plugins: { legend: { display: true } },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: "Items Added/Removed" } },
+                x: { title: { display: true, text: "Date" } }
+            }
         }
-    });
-
-    // ---------- Stock Levels (Color-coded) ----------
-    const maxQty = Math.max(...quantities, 1);
-    const stockColors = quantities.map(q =>
-        q / maxQty < 0.3 ? "#ef4444" :
-        q / maxQty < 0.6 ? "#facc15" :
-        "#22c55e"
-    );
-
-    new Chart(document.getElementById("stockChart"), {
-        type: "bar",
-        data: {
-            labels: itemNames,
-            datasets: [{
-                label: "Stock Level",
-                data: quantities,
-                backgroundColor: stockColors
-            }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } } }
     });
 </script>
 
