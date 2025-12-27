@@ -3,7 +3,6 @@ body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: linear
 .container { max-width:900px; margin:50px auto; background:#020617; padding:30px; border-radius:14px; box-shadow:0 0 30px rgba(0,0,0,0.6); }
 h1 { text-align:center; margin-bottom:25px; color:#93c5fd; }
 
-/* Form */
 .inventory-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:30px; }
 .inventory-form input, .inventory-form select, .inventory-form button { padding:12px; border-radius:8px; border:none; font-size:14px; }
 .inventory-form input, .inventory-form select { background:#020617; color:#e5e7eb; border:1px solid #1e293b; }
@@ -12,32 +11,15 @@ h1 { text-align:center; margin-bottom:25px; color:#93c5fd; }
 .inventory-form button { background:#3b82f6; color:white; font-weight:bold; cursor:pointer; transition: transform 0.15s ease, background 0.15s ease; }
 .inventory-form button:hover { background:#2563eb; transform:translateY(-2px); }
 
-/* Table */
 table { width:100%; border-collapse:collapse; }
 thead { background:#020617; }
 th, td { padding:14px; text-align:center; border-bottom:1px solid #1e293b; }
 th { color:#93c5fd; font-weight:600; }
 tbody tr:hover { background:#020617; }
 
-/* Delete Button */
-.delete-btn { color:#ef4444; text-decoration:none; font-weight:bold; }
-.delete-btn:hover { text-decoration:underline; }
-
-/* Charts */
-canvas { margin-top: 20px; max-width: 100%; }
-
-.export-btn, .back-btn {
-    display: inline-block;
-    margin-bottom: 20px;
-    padding: 10px 15px;
-    background-color: #3b82f6;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: bold;
+.delete-btn, .export-btn, .back-btn {
+    display:inline-block; margin-bottom:20px; padding:10px 15px; background-color:#3b82f6; color:white; text-decoration:none; border-radius:8px; font-weight:bold;
 }
-.export-btn:hover, .back-btn:hover {
-    background-color: #2563eb;
-}
+.delete-btn:hover, .export-btn:hover, .back-btn:hover { background-color:#2563eb; }
 
-
+canvas { margin-top:20px; max-width:100%; }
