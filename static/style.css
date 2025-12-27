@@ -43,4 +43,26 @@ canvas { margin-top:20px; max-width:100%; }
     width: auto;
     border-radius: 8px; /* optional */
 }
+<script>
+const toggleBtn = document.getElementById("theme-toggle");
+const body = document.body;
+
+// Load previous preference
+if(localStorage.getItem("theme") === "light"){
+    body.classList.add("light-mode");
+    toggleBtn.textContent = "🌞 Light Mode";
+}
+
+// Toggle on click
+toggleBtn.addEventListener("click", () => {
+    body.classList.toggle("light-mode");
+    if(body.classList.contains("light-mode")){
+        toggleBtn.textContent = "🌞 Light Mode";
+        localStorage.setItem("theme","light");
+    } else {
+        toggleBtn.textContent = "🌙 Dark Mode";
+        localStorage.setItem("theme","dark");
+    }
+});
+</script>
 
