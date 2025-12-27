@@ -1,40 +1,23 @@
-/* ------------------ Variables ------------------ */
-:root {
-    --bg-color: #020617;
-    --text-color: #e5e7eb;
-    --container-bg: #020617;
-    --table-border: #1e293b;
-    --accent-color: #3b82f6;
-}
-
+/* ------------------ Default Dark Mode ------------------ */
 body {
     margin: 0;
     font-family: "Segoe UI", Arial, sans-serif;
-    background: var(--bg-color);
-    color: var(--text-color);
+    background-color: #020617;
+    color: #e5e7eb;
     transition: all 0.3s ease;
 }
 
-body.light-mode {
-    --bg-color: #f9fafb;
-    --text-color: #111827;
-    --container-bg: #ffffff;
-    --table-border: #d1d5db;
-    --accent-color: #2563eb;
-}
-
-/* ------------------ Container ------------------ */
 .container {
     max-width: 900px;
     margin: 50px auto;
-    background: var(--container-bg);
+    background: #020617;
     padding: 30px;
     border-radius: 14px;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ------------------ Header ------------------ */
+/* Header */
 .header {
     display: flex;
     align-items: center;
@@ -44,10 +27,7 @@ body.light-mode {
 }
 
 .header h1 {
-    margin: 0;
-    font-size: 2em;
     color: #93c5fd;
-    transition: color 0.3s ease;
 }
 
 .header .logo {
@@ -56,7 +36,7 @@ body.light-mode {
     border-radius: 8px;
 }
 
-/* ------------------ Form ------------------ */
+/* Form */
 .inventory-form {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -76,37 +56,32 @@ body.light-mode {
 
 .inventory-form input,
 .inventory-form select {
-    background: var(--container-bg);
-    color: var(--text-color);
-    border: 1px solid var(--table-border);
+    background: #020617;
+    color: #e5e7eb;
+    border: 1px solid #1e293b;
 }
 
 .inventory-form input::placeholder {
     color: #64748b;
 }
 
-.inventory-form select {
-    cursor: pointer;
-}
-
 .inventory-form button {
-    background: var(--accent-color);
+    background: #3b82f6;
     color: white;
     font-weight: bold;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.3s ease;
 }
 
 .inventory-form button:hover {
-    transform: translateY(-2px);
     filter: brightness(1.1);
+    transform: translateY(-2px);
 }
 
-/* ------------------ Export Button ------------------ */
+/* Export Button */
 .export-btn {
     display: inline-block;
     margin-bottom: 20px;
-    background: var(--accent-color);
+    background: #3b82f6;
     color: white;
     padding: 10px 16px;
     border-radius: 8px;
@@ -119,7 +94,7 @@ body.light-mode {
     filter: brightness(1.1);
 }
 
-/* ------------------ Table ------------------ */
+/* Table */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -127,14 +102,13 @@ table {
 }
 
 thead {
-    background: var(--container-bg);
+    background: #020617;
 }
 
 th, td {
     padding: 14px;
     text-align: center;
-    border-bottom: 1px solid var(--table-border);
-    transition: all 0.3s ease;
+    border-bottom: 1px solid #1e293b;
 }
 
 th {
@@ -144,25 +118,23 @@ th {
 
 tbody tr:hover {
     background: rgba(255,255,255,0.05);
-    transition: background 0.3s ease;
 }
 
-/* ------------------ Delete Button ------------------ */
+/* Delete Button */
 .delete-btn {
     color: #ef4444;
     text-decoration: none;
     font-weight: bold;
-    transition: all 0.3s ease;
 }
 
 .delete-btn:hover {
     text-decoration: underline;
 }
 
-/* ------------------ Theme Toggle Button ------------------ */
+/* Theme Toggle Button */
 #theme-toggle {
     margin-left: 20px;
-    background: var(--accent-color);
+    background: #3b82f6;
     color: white;
     border: none;
     border-radius: 8px;
@@ -176,11 +148,53 @@ tbody tr:hover {
     filter: brightness(1.1);
 }
 
-/* ------------------ Charts Section ------------------ */
+/* Charts */
 canvas {
-    background: var(--container-bg);
+    background: #020617;
     border-radius: 12px;
     padding: 12px;
     margin-bottom: 40px;
     transition: background 0.3s ease;
+}
+
+/* ------------------ Light Mode ------------------ */
+body.light-mode {
+    background-color: #f9fafb;
+    color: #111827;
+}
+
+body.light-mode .container {
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+body.light-mode .inventory-form input,
+body.light-mode .inventory-form select {
+    background: #ffffff;
+    color: #111827;
+    border: 1px solid #d1d5db;
+}
+
+body.light-mode .inventory-form button,
+body.light-mode #theme-toggle,
+body.light-mode .export-btn {
+    background: #2563eb;
+    color: white;
+}
+
+body.light-mode table thead {
+    background: #ffffff;
+}
+
+body.light-mode th {
+    color: #2563eb;
+}
+
+body.light-mode tbody tr:hover {
+    background: rgba(37,99,235,0.05);
+}
+
+body.light-mode canvas {
+    background: #ffffff;
 }
