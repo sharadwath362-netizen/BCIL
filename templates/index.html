@@ -12,7 +12,9 @@
 
     <form method="POST" class="inventory-form">
         <input type="text" name="barcode" placeholder="Barcode" required>
+
         <input type="text" name="name" placeholder="Item Name (required for Add)">
+
         <input type="number" name="quantity" placeholder="Quantity" min="1" required>
 
         <select name="action" required>
@@ -48,23 +50,4 @@
         </tbody>
     </table>
 
-    <div class="charts">
-        <h2>📊 Item Popularity</h2>
-        {% if popularity_img %}
-            <img src="data:image/png;base64,{{ popularity_img }}" alt="Item Popularity">
-        {% else %}
-            <p>No data to display.</p>
-        {% endif %}
-
-        <h2>📊 Stock Levels</h2>
-        {% if stock_img %}
-            <img src="data:image/png;base64,{{ stock_img }}" alt="Stock Levels">
-        {% else %}
-            <p>No data to display.</p>
-        {% endif %}
-    </div>
-</div>
-
-</body>
-</html>
-
+</di
