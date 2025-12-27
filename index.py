@@ -94,4 +94,18 @@ def index():
             pass
 
     return render_template(
-        "index.htm
+        "index.html",
+        items=items,
+        popularity_img=popularity_img,
+        stock_img=stock_img
+    )
+
+@app.route("/delete/<int:item_id>")
+def delete(item_id):
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("DELETE FROM inventory WHERE id = ?", (item_id,))
+    conn.commit()
+    conn.close()
+    return redirect("/")
