@@ -14,10 +14,12 @@
         <input type="text" name="barcode" placeholder="Barcode" required>
         <input type="text" name="name" placeholder="Item Name (required for Add)">
         <input type="number" name="quantity" placeholder="Quantity" min="1" required>
+
         <select name="action" required>
             <option value="add">➕ Add</option>
             <option value="remove">➖ Remove</option>
         </select>
+
         <button type="submit">Submit</button>
     </form>
 
@@ -38,7 +40,9 @@
                 <td>{{ item[1] }}</td>
                 <td>{{ item[2] }}</td>
                 <td>{{ item[3] }}</td>
-                <td><a href="/delete/{{ item[0] }}" class="delete-btn">Delete</a></td>
+                <td>
+                    <a href="/delete/{{ item[0] }}" class="delete-btn">Delete</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
