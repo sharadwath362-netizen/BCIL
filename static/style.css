@@ -23,3 +23,24 @@ tbody tr:hover { background:#020617; }
 .delete-btn:hover, .export-btn:hover, .back-btn:hover { background-color:#2563eb; }
 
 canvas { margin-top:20px; max-width:100%; }
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 2em;
+    color: #93c5fd;
+}
+
+.header .logo {
+    height: 60px;   /* Adjust logo height */
+    width: auto;
+    border-radius: 8px; /* optional */
+}
+
