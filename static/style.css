@@ -26,3 +26,18 @@ tbody tr:hover { background:#020617; }
 /* Charts */
 canvas { margin-top: 20px; max-width: 100%; }
 
+.export-btn, .back-btn {
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    background-color: #3b82f6;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+}
+.export-btn:hover, .back-btn:hover {
+    background-color: #2563eb;
+}
+
+
