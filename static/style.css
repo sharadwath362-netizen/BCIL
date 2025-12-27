@@ -1,48 +1,4 @@
-* { box-sizing: border-box; }
-body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: linear-gradient(135deg,#020617,#0f172a); color:#e5e7eb; }
-.container { max-width:900px; margin:50px auto; background:#020617; padding:30px; border-radius:14px; box-shadow:0 0 30px rgba(0,0,0,0.6); }
-h1 { text-align:center; margin-bottom:25px; color:#93c5fd; }
-
-.inventory-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:30px; }
-.inventory-form input, .inventory-form select, .inventory-form button { padding:12px; border-radius:8px; border:none; font-size:14px; }
-.inventory-form input, .inventory-form select { background:#020617; color:#e5e7eb; border:1px solid #1e293b; }
-.inventory-form input::placeholder { color:#64748b; }
-.inventory-form select { cursor:pointer; }
-.inventory-form button { background:#3b82f6; color:white; font-weight:bold; cursor:pointer; transition: transform 0.15s ease, background 0.15s ease; }
-.inventory-form button:hover { background:#2563eb; transform:translateY(-2px); }
-
-table { width:100%; border-collapse:collapse; }
-thead { background:#020617; }
-th, td { padding:14px; text-align:center; border-bottom:1px solid #1e293b; }
-th { color:#93c5fd; font-weight:600; }
-tbody tr:hover { background:#020617; }
-
-.delete-btn, .export-btn, .back-btn {
-    display:inline-block; margin-bottom:20px; padding:10px 15px; background-color:#3b82f6; color:white; text-decoration:none; border-radius:8px; font-weight:bold;
-}
-.delete-btn:hover, .export-btn:hover, .back-btn:hover { background-color:#2563eb; }
-
-canvas { margin-top:20px; max-width:100%; }
-
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 2em;
-    color: #93c5fd;
-}
-
-.header .logo {
-    height: 60px;   /* Adjust logo height */
-    width: auto;
-    border-radius: 8px; /* optional */
-}
+/* ------------------ Variables ------------------ */
 :root {
     --bg-color: #020617;
     --text-color: #e5e7eb;
@@ -59,6 +15,15 @@ body {
     transition: all 0.3s ease;
 }
 
+body.light-mode {
+    --bg-color: #f9fafb;
+    --text-color: #111827;
+    --container-bg: #ffffff;
+    --table-border: #d1d5db;
+    --accent-color: #2563eb;
+}
+
+/* ------------------ Container ------------------ */
 .container {
     max-width: 900px;
     margin: 50px auto;
@@ -69,19 +34,153 @@ body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Table borders & header */
-table, th, td { border-bottom: 1px solid var(--table-border); transition: all 0.3s ease; }
-th { color: #93c5fd; }
-
-/* Buttons */
-button, .delete-btn, .export-btn, .back-btn { transition: all 0.3s ease; }
-
-/* Light mode overrides */
-body.light-mode {
-    --bg-color: #f9fafb;
-    --text-color: #111827;
-    --container-bg: #ffffff;
-    --table-border: #d1d5db;
-    --accent-color: #2563eb;
+/* ------------------ Header ------------------ */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
 }
 
+.header h1 {
+    margin: 0;
+    font-size: 2em;
+    color: #93c5fd;
+    transition: color 0.3s ease;
+}
+
+.header .logo {
+    height: 60px;
+    width: auto;
+    border-radius: 8px;
+}
+
+/* ------------------ Form ------------------ */
+.inventory-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.inventory-form input,
+.inventory-form select,
+.inventory-form button {
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.inventory-form input,
+.inventory-form select {
+    background: var(--container-bg);
+    color: var(--text-color);
+    border: 1px solid var(--table-border);
+}
+
+.inventory-form input::placeholder {
+    color: #64748b;
+}
+
+.inventory-form select {
+    cursor: pointer;
+}
+
+.inventory-form button {
+    background: var(--accent-color);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.3s ease;
+}
+
+.inventory-form button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* ------------------ Export Button ------------------ */
+.export-btn {
+    display: inline-block;
+    margin-bottom: 20px;
+    background: var(--accent-color);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* ------------------ Table ------------------ */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    transition: all 0.3s ease;
+}
+
+thead {
+    background: var(--container-bg);
+}
+
+th, td {
+    padding: 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--table-border);
+    transition: all 0.3s ease;
+}
+
+th {
+    color: #93c5fd;
+    font-weight: 600;
+}
+
+tbody tr:hover {
+    background: rgba(255,255,255,0.05);
+    transition: background 0.3s ease;
+}
+
+/* ------------------ Delete Button ------------------ */
+.delete-btn {
+    color: #ef4444;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+    text-decoration: underline;
+}
+
+/* ------------------ Theme Toggle Button ------------------ */
+#theme-toggle {
+    margin-left: 20px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#theme-toggle:hover {
+    filter: brightness(1.1);
+}
+
+/* ------------------ Charts Section ------------------ */
+canvas {
+    background: var(--container-bg);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 40px;
+    transition: background 0.3s ease;
+}
