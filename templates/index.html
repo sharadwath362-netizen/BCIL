@@ -56,13 +56,16 @@
         <h2>📊 Item Popularity</h2>
         <canvas id="popularityChart"></canvas>
 
-        <h2 style="margin-top: 40px;">📊 Stock Levels</h2>
+        <h2 style="margin-top: 40px;">📦 Stock Levels</h2>
         <canvas id="stockChart"></canvas>
+
+        <h2 style="margin-top: 40px;">📅 Daily Activity</h2>
+        <canvas id="dailyActivityChart"></canvas>
     </div>
 </div>
 
 <script>
-    // Inventory data from Flask (Jinja → JS)
+    /* ---------- Inventory data from Flask ---------- */
     const itemNames = [
         {% for item in items %}
             "{{ item[2] }}",
@@ -75,13 +78,16 @@
         {% endfor %}
     ];
 
-    // ---------- Item Popularity (Horizontal Bar) ----------
+    /* ---------- DAILY ACTIVITY (dummy but safe) ---------- */
+    const activityDates = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+    const activityCounts = [6, 12, 8, 15, 10];
+
+    /* ---------- Item Popularity ---------- */
     new Chart(document.getElementById("popularityChart"), {
         type: "bar",
         data: {
             labels: itemNames,
             datasets: [{
-                label: "Quantity",
                 data: quantities,
                 backgroundColor: "#60a5fa"
             }]
@@ -89,13 +95,11 @@
         options: {
             indexAxis: "y",
             responsive: true,
-            plugins: {
-                legend: { display: false }
-            }
+            plugins: { legend: { display: false } }
         }
     });
 
-    // ---------- Stock Levels (Color-coded) ----------
+    /* ---------- Stock Levels ---------- */
     const maxQty = Math.max(...quantities, 1);
     const stockColors = quantities.map(q =>
         q / maxQty < 0.3 ? "#ef4444" :
@@ -108,15 +112,35 @@
         data: {
             labels: itemNames,
             datasets: [{
-                label: "Stock Level",
                 data: quantities,
                 backgroundColor: stockColors
             }]
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { display: false }
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    /* ---------- Daily Activity (Area Chart) ---------- */
+    new Chart(document.getElementById("dailyActivityChart"), {
+        type: "line",
+        data: {
+            labels: activityDates,
+            datasets: [{
+                data: activityCounts,
+                fill: true,
+                tension: 0.4,
+                backgroundColor: "rgba(59,130,246,0.25)",
+                borderColor: "#3b82f6",
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true }
             }
         }
     });
