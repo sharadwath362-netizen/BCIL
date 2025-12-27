@@ -28,7 +28,7 @@
         <button type="submit">Submit</button>
     </form>
 
-    <!-- History / Export Button -->
+    <!-- Export/History -->
     <a href="/history" class="export-btn">📜 View History / Export</a>
 
     <!-- Inventory Table -->
@@ -68,6 +68,7 @@
     </div>
 </div>
 
+<!-- Charts JS -->
 <script src="/static/charts.js"></script>
 <script>
     // Pass Flask data to JS
@@ -79,9 +80,9 @@
     // Initialize charts
     createCharts(itemNames, quantities, dates, dailyCounts);
 
-    // Theme toggle
-    const toggleBtn = document.getElementById("theme-toggle");
+    // Dark/Light Theme Toggle
     const body = document.body;
+    const toggleBtn = document.getElementById("theme-toggle");
 
     // Load saved theme
     if(localStorage.getItem("theme") === "light"){
@@ -105,3 +106,4 @@
 
 </body>
 </html>
+
