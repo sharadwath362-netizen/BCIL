@@ -9,8 +9,13 @@
 <body>
 
 <div class="container">
-    <h1>📦 Inventory Management System</h1>
+    <!-- Header with logo -->
+    <div class="header">
+        <img src="/static/logo.png" alt="College Logo" class="logo">
+        <h1>📦 Inventory Management System</h1>
+    </div>
 
+    <!-- Inventory Form -->
     <form method="POST" class="inventory-form">
         <input type="text" name="barcode" placeholder="Barcode" required>
         <input type="text" name="name" placeholder="Item Name (required for Add)">
@@ -22,8 +27,10 @@
         <button type="submit">Submit</button>
     </form>
 
+    <!-- History / Export Button -->
     <a href="/history" class="export-btn">📜 View History / Export</a>
 
+    <!-- Inventory Table -->
     <table>
         <thead>
             <tr>
@@ -47,7 +54,7 @@
         </tbody>
     </table>
 
-    <!-- Charts -->
+    <!-- Charts Section -->
     <div style="margin-top: 40px;">
         <h2>📊 Item Popularity</h2>
         <canvas id="popularityChart"></canvas>
@@ -65,14 +72,14 @@
     const itemNames = [{% for item in items %}"{{ item[2]}}",{% endfor %}];
     const quantities = [{% for item in items %}{{ item[3]}},{% endfor %}];
 
-    // Item Popularity
+    // Item Popularity (Horizontal Bar)
     new Chart(document.getElementById("popularityChart"), {
         type: "bar",
         data: { labels: itemNames, datasets: [{ label: "Quantity", data: quantities, backgroundColor: "#60a5fa" }] },
         options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false } } }
     });
 
-    // Stock Levels
+    // Stock Levels (Color-coded)
     const maxQty = Math.max(...quantities, 1);
     const stockColors = quantities.map(q => q/maxQty<0.3?"#ef4444":q/maxQty<0.6?"#facc15":"#22c55e");
     new Chart(document.getElementById("stockChart"), {
@@ -81,7 +88,7 @@
         options: { responsive: true, plugins: { legend: { display: false } } }
     });
 
-    // Daily Activity
+    // Daily Activity (Line Chart)
     const dates = [{% for d in dates %}"{{ d}}",{% endfor %}];
     const dailyCounts = [{% for c in daily_counts %}{{ c }},{% endfor %}];
 
