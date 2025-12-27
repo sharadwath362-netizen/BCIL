@@ -9,11 +9,10 @@
 <body>
 
 <div class="container">
-    <!-- Header with logo and theme toggle -->
+    <!-- Header with logo -->
     <div class="header">
         <img src="/static/logo.png" alt="College Logo" class="logo">
         <h1>📦 Inventory Management System</h1>
-        <button id="theme-toggle">🌙 Dark Mode</button>
     </div>
 
     <!-- Inventory Form -->
@@ -28,7 +27,7 @@
         <button type="submit">Submit</button>
     </form>
 
-    <!-- Export/History -->
+    <!-- History / Export Button -->
     <a href="/history" class="export-btn">📜 View History / Export</a>
 
     <!-- Inventory Table -->
@@ -55,7 +54,7 @@
         </tbody>
     </table>
 
-    <!-- Charts -->
+    <!-- Charts Section -->
     <div style="margin-top: 40px;">
         <h2>📊 Item Popularity</h2>
         <canvas id="popularityChart"></canvas>
@@ -68,42 +67,56 @@
     </div>
 </div>
 
-<!-- Charts JS -->
-<script src="/static/charts.js"></script>
 <script>
-    // Pass Flask data to JS
-    const itemNames = [{% for item in items %}"{{ item[2] }}",{% endfor %}];
-    const quantities = [{% for item in items %}{{ item[3] }},{% endfor %}];
-    const dates = [{% for d in dates %}"{{ d }}",{% endfor %}];
+    // Inventory data
+    const itemNames = [{% for item in items %}"{{ item[2]}}",{% endfor %}];
+    const quantities = [{% for item in items %}{{ item[3]}},{% endfor %}];
+
+    // Item Popularity (Horizontal Bar)
+    new Chart(document.getElementById("popularityChart"), {
+        type: "bar",
+        data: { labels: itemNames, datasets: [{ label: "Quantity", data: quantities, backgroundColor: "#60a5fa" }] },
+        options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // Stock Levels (Color-coded)
+    const maxQty = Math.max(...quantities, 1);
+    const stockColors = quantities.map(q => q/maxQty<0.3?"#ef4444":q/maxQty<0.6?"#facc15":"#22c55e");
+    new Chart(document.getElementById("stockChart"), {
+        type: "bar",
+        data: { labels: itemNames, datasets: [{ label: "Stock Level", data: quantities, backgroundColor: stockColors }] },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // Daily Activity (Line Chart)
+    const dates = [{% for d in dates %}"{{ d}}",{% endfor %}];
     const dailyCounts = [{% for c in daily_counts %}{{ c }},{% endfor %}];
 
-    // Initialize charts
-    createCharts(itemNames, quantities, dates, dailyCounts);
-
-    // Dark/Light Theme Toggle
-    const body = document.body;
-    const toggleBtn = document.getElementById("theme-toggle");
-
-    // Load saved theme
-    if(localStorage.getItem("theme") === "light"){
-        body.classList.add("light-mode");
-        toggleBtn.textContent = "🌞 Light Mode";
-        updateChartColors();
-    }
-
-    toggleBtn.addEventListener("click", () => {
-        body.classList.toggle("light-mode");
-        if(body.classList.contains("light-mode")){
-            toggleBtn.textContent = "🌞 Light Mode";
-            localStorage.setItem("theme","light");
-        } else {
-            toggleBtn.textContent = "🌙 Dark Mode";
-            localStorage.setItem("theme","dark");
+    new Chart(document.getElementById("dailyActivityChart"), {
+        type: "line",
+        data: {
+            labels: dates,
+            datasets: [{
+                label: "Daily Activity",
+                data: dailyCounts,
+                borderColor: "#3b82f6",
+                backgroundColor: "rgba(59,130,246,0.2)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: true } },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: "Items Added/Removed" } },
+                x: { title: { display: true, text: "Date" } }
+            }
         }
-        updateChartColors();
     });
 </script>
 
 </body>
 </html>
-
