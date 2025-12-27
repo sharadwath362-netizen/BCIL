@@ -180,3 +180,22 @@ body.light-mode tbody tr:hover {
 body.light-mode canvas {
     background: #ffffff;
 }
+
+
+/* Export / Back to Inventory Button */
+.export-btn {
+    display: inline-block;
+    margin-bottom: 20px;
+    background: #3b82f6;       /* Blue background */
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    background: #2563eb;       /* Darker blue on hover */
+    transform: translateY(-2px);
+}
