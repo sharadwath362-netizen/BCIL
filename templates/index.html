@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Inventory Management</title>
     <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -12,9 +15,7 @@
 
     <form method="POST" class="inventory-form">
         <input type="text" name="barcode" placeholder="Barcode" required>
-
         <input type="text" name="name" placeholder="Item Name (required for Add)">
-
         <input type="number" name="quantity" placeholder="Quantity" min="1" required>
 
         <select name="action" required>
@@ -50,4 +51,76 @@
         </tbody>
     </table>
 
-</di
+    <!-- Charts -->
+    <div style="margin-top: 40px;">
+        <h2>📊 Item Popularity</h2>
+        <canvas id="popularityChart"></canvas>
+
+        <h2 style="margin-top: 40px;">📊 Stock Levels</h2>
+        <canvas id="stockChart"></canvas>
+    </div>
+</div>
+
+<script>
+    // Inventory data from Flask (Jinja → JS)
+    const itemNames = [
+        {% for item in items %}
+            "{{ item[2] }}",
+        {% endfor %}
+    ];
+
+    const quantities = [
+        {% for item in items %}
+            {{ item[3] }},
+        {% endfor %}
+    ];
+
+    // ---------- Item Popularity (Horizontal Bar) ----------
+    new Chart(document.getElementById("popularityChart"), {
+        type: "bar",
+        data: {
+            labels: itemNames,
+            datasets: [{
+                label: "Quantity",
+                data: quantities,
+                backgroundColor: "#60a5fa"
+            }]
+        },
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // ---------- Stock Levels (Color-coded) ----------
+    const maxQty = Math.max(...quantities, 1);
+    const stockColors = quantities.map(q =>
+        q / maxQty < 0.3 ? "#ef4444" :
+        q / maxQty < 0.6 ? "#facc15" :
+        "#22c55e"
+    );
+
+    new Chart(document.getElementById("stockChart"), {
+        type: "bar",
+        data: {
+            labels: itemNames,
+            datasets: [{
+                label: "Stock Level",
+                data: quantities,
+                backgroundColor: stockColors
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
