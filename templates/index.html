@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Inventory Management</title>
+
+    <!-- ✅ TAB LOGO (FAVICON) -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -12,7 +16,7 @@
     <!-- Header with logo -->
     <div class="header">
         <img src="/static/logo.png" alt="College Logo" class="logo">
-        <h1> Inventory Management System</h1>
+        <h1>Inventory Management System</h1>
     </div>
 
     <!-- Inventory Form -->
@@ -68,28 +72,34 @@
 </div>
 
 <script>
-    // Inventory data
-    const itemNames = [{% for item in items %}"{{ item[2]}}",{% endfor %}];
-    const quantities = [{% for item in items %}{{ item[3]}},{% endfor %}];
+    const itemNames = [{% for item in items %}"{{ item[2] }}",{% endfor %}];
+    const quantities = [{% for item in items %}{{ item[3] }},{% endfor %}];
 
-    // Item Popularity (Horizontal Bar)
     new Chart(document.getElementById("popularityChart"), {
         type: "bar",
-        data: { labels: itemNames, datasets: [{ label: "Quantity", data: quantities, backgroundColor: "#60a5fa" }] },
+        data: {
+            labels: itemNames,
+            datasets: [{ label: "Quantity", data: quantities, backgroundColor: "#60a5fa" }]
+        },
         options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false } } }
     });
 
-    // Stock Levels (Color-coded)
     const maxQty = Math.max(...quantities, 1);
-    const stockColors = quantities.map(q => q/maxQty<0.3?"#ef4444":q/maxQty<0.6?"#facc15":"#22c55e");
+    const stockColors = quantities.map(q =>
+        q / maxQty < 0.3 ? "#ef4444" :
+        q / maxQty < 0.6 ? "#facc15" : "#22c55e"
+    );
+
     new Chart(document.getElementById("stockChart"), {
         type: "bar",
-        data: { labels: itemNames, datasets: [{ label: "Stock Level", data: quantities, backgroundColor: stockColors }] },
+        data: {
+            labels: itemNames,
+            datasets: [{ label: "Stock Level", data: quantities, backgroundColor: stockColors }]
+        },
         options: { responsive: true, plugins: { legend: { display: false } } }
     });
 
-    // Daily Activity (Line Chart)
-    const dates = [{% for d in dates %}"{{ d}}",{% endfor %}];
+    const dates = [{% for d in dates %}"{{ d }}",{% endfor %}];
     const dailyCounts = [{% for c in daily_counts %}{{ c }},{% endfor %}];
 
     new Chart(document.getElementById("dailyActivityChart"), {
@@ -109,10 +119,9 @@
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: true } },
             scales: {
-                y: { beginAtZero: true, title: { display: true, text: "Items Added/Removed" } },
-                x: { title: { display: true, text: "Date" } }
+                y: { beginAtZero: true },
+                x: { }
             }
         }
     });
