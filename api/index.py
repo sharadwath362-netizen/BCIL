@@ -7,33 +7,34 @@ import io
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
-DB_PATH = "inventory.db"
+DB_PATH = "/tmp/inventory.db"
 
 # ------------------ Initialize DB ------------------
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-        # Inventory table
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS inventory (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            barcode TEXT UNIQUE,
-            name TEXT,
-            quantity INTEGER
-        )
-    """)
-        # Activity logs table with timestamp
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS activity_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            barcode TEXT,
-            action TEXT,
-            quantity INTEGER
-        )
-    """)
-    conn.commit()
-    conn.close()
+    if not os.path.exists(DB_PATH):
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+            # Inventory table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS inventory (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                barcode TEXT UNIQUE,
+                name TEXT,
+                quantity INTEGER
+            )
+        """)
+            # Activity logs table with timestamp
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS activity_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT,
+                barcode TEXT,
+                action TEXT,
+                quantity INTEGER
+            )
+        """)
+        conn.commit()
+        conn.close()
 
 # ------------------ Main Inventory Page ------------------
 @app.route("/", methods=["GET", "POST"])
