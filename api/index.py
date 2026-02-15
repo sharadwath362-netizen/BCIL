@@ -11,18 +11,17 @@ DB_PATH = "inventory.db"
 
 # ------------------ Initialize DB ------------------
 def init_db():
-    if not os.path.exists(DB_PATH):
-        conn = sqlite3.connect(DB_PATH)
-        cur = conn.cursor()
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
         # Inventory table
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS inventory (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                barcode TEXT UNIQUE,
-                name TEXT,
-                quantity INTEGER
-            )
-        """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS inventory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            barcode TEXT UNIQUE,
+            name TEXT,
+            quantity INTEGER
+        )
+    """)
         # Activity logs table with timestamp
         cur.execute("""
             CREATE TABLE IF NOT EXISTS activity_logs (
