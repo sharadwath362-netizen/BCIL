@@ -7,7 +7,7 @@ import io
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
-DB_PATH = "/tmp/inventory.db"
+DB_PATH = "inventory.db"
 
 # ------------------ Initialize DB ------------------
 def init_db():
