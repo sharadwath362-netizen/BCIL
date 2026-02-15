@@ -23,17 +23,17 @@ def init_db():
         )
     """)
         # Activity logs table with timestamp
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS activity_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT,
-                barcode TEXT,
-                action TEXT,
-                quantity INTEGER
-            )
-        """)
-        conn.commit()
-        conn.close()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS activity_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            barcode TEXT,
+            action TEXT,
+            quantity INTEGER
+        )
+    """)
+    conn.commit()
+    conn.close()
 
 # ------------------ Main Inventory Page ------------------
 @app.route("/", methods=["GET", "POST"])
